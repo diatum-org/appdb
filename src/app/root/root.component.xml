@@ -1,0 +1,11 @@
+<ActionBar class="action-bar"></ActionBar>
+
+<GridLayout>
+  <ScrollView>
+    <StackLayout>
+      <Label text="Contact App Test" paddingTop="32" horizontalAlignment="center" (tap)="contact()"></Label>
+      <Label text="Social App Test" paddingTop="32" horizontalAlignment="center" (tap)="social()"></Label>
+    </StackLayout>
+  </ScrollView>
+</GridLayout>
+

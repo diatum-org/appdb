@@ -1,0 +1,13 @@
+<ActionBar class="action-bar"></ActionBar>
+
+<GridLayout rows="auto,auto,*">
+  <TextField row="0" hint="node" autocorrect="false" autocapitalizationType="none" [text]="node"
+      (textChange)="onNode($event.value)"></TextField>
+  <TextField row="1" hint="token" autocorrect="false" autocapitalization="none" [text]="token"
+      (textChange)="onToken($event.value)"></TextField>
+  <ScrollView row="2" backgroundColor="#f0f0f0">
+    <StackLayout>
+      <Label text="TEST" paddingTop="32" horizontalAlignment="center" (tap)="onTest()"></Label>
+    </StackLayout>
+  </ScrollView>
+</GridLayout>
