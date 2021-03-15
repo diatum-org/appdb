@@ -775,6 +775,8 @@ export class StoreService {
     let search: string = "";
     if(entry != null && searchable != null) {
       search = searchable(entry.subject);
+      search = search.replace(/'/g, ' ');
+      search = search.replace(/"/g, ' ');
     }
 
     let r: number = entry.ready ? 1 : 0;
@@ -788,6 +790,8 @@ export class StoreService {
     let search: string = "";
     if(entry != null && searchable != null) {
       search = searchable(entry.subject);
+      search = search.replace(/'/g, ' ');
+      search = search.replace(/"/g, ' ');
     }
 
     let r: number = entry.ready ? 1 : 0;
@@ -1127,7 +1131,7 @@ export class StoreService {
 
     let search: string = "";
     if(entry != null && searchable != null) {
-      search = searchable(entry);
+      search = searchable(entry).replace(/["',]/g, " ");
     }
  
     let cmd: string = "insert or ignore into view_" + id + " (emigo_id, subject_id, revision, created, modified, expires, schema, searchable, data, hide, tag_revision, tag_count) values ('" + emigoId + "', '" + entry.subjectId + "', " + entry.revision + ", " + entry.created + ", " + entry.modified + ", " + entry.expires + ", '" + entry.schema + "', '" + search + "', " + this.encodeText(entry.data) + ", 0, 0, 0)";
@@ -1138,7 +1142,7 @@ export class StoreService {
 
     let search: string = "";
     if(entry != null && searchable != null) {
-      search = searchable(entry);
+      search = searchable(entry).replace(/["',]/g, " ");
     }
  
     let cmd: string = "update view_" + id + " set revision=" + entry.revision + ", created=" + entry.created + ", modified=" + entry.modified + ", expires=" + entry.expires + ", schema='" + entry.schema + "', searchable='" + search + "', data=" + this.encodeText(entry.data) + " where emigo_id='" + emigoId + "' and subject_id='" + entry.subjectId + "'";

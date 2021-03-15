@@ -641,6 +641,7 @@ export class EmigoService {
 
           // add remote entry not in local
           await this.asyncForEach(remoteMap, async (value, key) => {
+
             if(!localMap.has(key)) {
               let entry: SubjectEntry = await this.showService.getSubject(this.node, this.token, key);
               await this.storeService.addSubject(this.emigoId, entry, this.searchableSubject);
