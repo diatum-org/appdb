@@ -7,7 +7,7 @@ import { timeout } from 'rxjs/operators';
 
 import { Attribute } from './attribute';
 import { AttributeView } from './attributeView';
-import { EmigoMessage } from './emigoMessage';
+import { AmigoMessage } from './amigoMessage';
 import { AuthMessage } from './authMessage';
 
 @Injectable()

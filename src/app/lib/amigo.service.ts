@@ -4,22 +4,22 @@ import { HttpClient, HttpHeaders, HttpParams, HttpResponse, HttpEvent } from '@a
 import { HttpUrlEncodingCodec } from '@angular/common/http';
 import { ImageSource, fromBase64 } from "tns-core-modules/image-source";
 
-import { getEmigoObject } from './emigo.util';
+import { getAmigoObject } from './amigo.util';
 
-import { Emigo } from './emigo';
-import { EmigoMessage } from './emigoMessage';
+import { Amigo } from './amigo';
+import { AmigoMessage } from './amigoMessage';
 import { ServiceAccess } from './serviceAccess';
 import { LabelEntry } from './labelEntry';
-import { EmigoEntry } from './emigoEntry';
-import { EmigoView } from './emigoView';
+import { AmigoEntry } from './amigoEntry';
+import { AmigoView } from './amigoView';
 import { Attribute } from './attribute';
 import { AttributeEntry } from './attributeEntry';
 import { AttributeView } from './attributeView';
 import { Subject } from './subject';
 import { SubjectEntry } from './subjectEntry';
 import { SubjectView } from './subjectView';
-import { PendingEmigo } from './pendingEmigo';
-import { PendingEmigoView } from './pendingEmigoView';
+import { PendingAmigo } from './pendingAmigo';
+import { PendingAmigoView } from './pendingAmigoView';
 import { ShareEntry } from './shareEntry';
 import { ShareStatus } from './shareStatus';
 import { ShareMessage } from './shareMessage';
@@ -30,10 +30,10 @@ import { Tag } from './tag';
 
 import { FeedSubject } from './feedSubject';
 import { FeedSubjectEntry } from './feedSubjectEntry';
-import { EmigoContact } from './emigoContact';
+import { AmigoContact } from './amigoContact';
 import { PendingContact } from './pendingContact';
 
-import { StoreService, IdRevision, EmigoUpdate } from './store.service';
+import { StoreService, IdRevision, AmigoUpdate } from './store.service';
 import { RegistryService } from './registry.service';
 import { AccessService } from './access.service';
 import { IdentityService } from './identity.service';
@@ -60,8 +60,8 @@ class Revision {
   share: number;
 }
 
-export class EmigoSubjectId {
-  emigoId: string;  
+export class AmigoSubjectId {
+  amigoId: string;  
   subjectId: string
 }
 
@@ -71,9 +71,9 @@ class MapEntry{
 }
 
 @Injectable()
-export class EmigoService {
+export class AmigoService {
 
-  private emigoId: string; // active account
+  private amigoId: string; // active account
   private registry: string;
   private node: string;
   private token: string;
@@ -85,29 +85,29 @@ export class EmigoService {
   private stale: number;
   private revision: Revision;
   private access: ServiceAccess;
-  private emigo: string;
-  private emigoLabel: string;
-  private emigoSearch: string;
+  private amigo: string;
+  private amigoLabel: string;
+  private amigoSearch: string;
   private showLabel: string;
   private showSearch: string;
   private viewLabel: string;
   private viewSearch: string;
   private syncInterval: any;
   private searchableSubject: any;
-  private searchableEmigo: any;
+  private searchableAmigo: any;
 
-  private selectedEmigo: BehaviorSubject<EmigoContact>;
+  private selectedAmigo: BehaviorSubject<AmigoContact>;
   private attributeEntries: BehaviorSubject<AttributeEntry[]>;
   private labelEntries: BehaviorSubject<LabelEntry[]>;
-  private filteredEmigos: BehaviorSubject<EmigoContact[]>;
-  private connectedEmigos: BehaviorSubject<EmigoContact[]>;
-  private requestedEmigos: BehaviorSubject<EmigoContact[]>;
-  private receivedEmigos: BehaviorSubject<EmigoContact[]>;
-  private savedEmigos: BehaviorSubject<EmigoContact[]>;
-  private allEmigos: BehaviorSubject<EmigoContact[]>;
-  private hiddenEmigos: BehaviorSubject<EmigoContact[]>;
-  private pendingEmigos: BehaviorSubject<PendingContact[]>;
-  private identityEmigo: BehaviorSubject<Emigo>;
+  private filteredAmigos: BehaviorSubject<AmigoContact[]>;
+  private connectedAmigos: BehaviorSubject<AmigoContact[]>;
+  private requestedAmigos: BehaviorSubject<AmigoContact[]>;
+  private receivedAmigos: BehaviorSubject<AmigoContact[]>;
+  private savedAmigos: BehaviorSubject<AmigoContact[]>;
+  private allAmigos: BehaviorSubject<AmigoContact[]>;
+  private hiddenAmigos: BehaviorSubject<AmigoContact[]>;
+  private pendingAmigos: BehaviorSubject<PendingContact[]>;
+  private identityAmigo: BehaviorSubject<Amigo>;
   private showSubjects: BehaviorSubject<FeedSubjectEntry[]>;
   private viewSubjects: BehaviorSubject<FeedSubject[]>;
 
@@ -124,25 +124,25 @@ export class EmigoService {
       private viewService: ViewService,
       private storeService: StoreService) {
 
-    this.selectedEmigo = new BehaviorSubject<EmigoContact>(null);
+    this.selectedAmigo = new BehaviorSubject<AmigoContact>(null);
     this.attributeEntries = new BehaviorSubject<AttributeEntry[]>([]);
     this.labelEntries = new BehaviorSubject<LabelEntry[]>([]);
-    this.filteredEmigos = new BehaviorSubject<EmigoContact[]>([]);
-    this.connectedEmigos = new BehaviorSubject<EmigoContact[]>([]);
-    this.requestedEmigos = new BehaviorSubject<EmigoContact[]>([]);
-    this.receivedEmigos = new BehaviorSubject<EmigoContact[]>([]);
-    this.savedEmigos = new BehaviorSubject<EmigoContact[]>([]);
-    this.allEmigos = new BehaviorSubject<EmigoContact[]>([]);
-    this.hiddenEmigos = new BehaviorSubject<EmigoContact[]>([]);
-    this.pendingEmigos = new BehaviorSubject<PendingContact[]>([]);
+    this.filteredAmigos = new BehaviorSubject<AmigoContact[]>([]);
+    this.connectedAmigos = new BehaviorSubject<AmigoContact[]>([]);
+    this.requestedAmigos = new BehaviorSubject<AmigoContact[]>([]);
+    this.receivedAmigos = new BehaviorSubject<AmigoContact[]>([]);
+    this.savedAmigos = new BehaviorSubject<AmigoContact[]>([]);
+    this.allAmigos = new BehaviorSubject<AmigoContact[]>([]);
+    this.hiddenAmigos = new BehaviorSubject<AmigoContact[]>([]);
+    this.pendingAmigos = new BehaviorSubject<PendingContact[]>([]);
     this.showSubjects = new BehaviorSubject<FeedSubjectEntry[]>([]);
     this.viewSubjects = new BehaviorSubject<FeedSubject[]>([]);
-    this.identityEmigo = new BehaviorSubject<Emigo>(null);
+    this.identityAmigo = new BehaviorSubject<Amigo>(null);
     this.syncInterval = null;
   }
 
   get identity() {
-    return this.identityEmigo.asObservable();
+    return this.identityAmigo.asObservable();
   }
 
   get labels() {
@@ -154,39 +154,39 @@ export class EmigoService {
   }
 
   get selectedContact() {
-    return this.selectedEmigo.asObservable();
+    return this.selectedAmigo.asObservable();
   }
 
   get filteredContacts() {
-    return this.filteredEmigos.asObservable();
+    return this.filteredAmigos.asObservable();
   }
 
   get connectedContacts() {
-    return this.connectedEmigos.asObservable();
+    return this.connectedAmigos.asObservable();
   }
 
   get requestedContacts() {
-    return this.requestedEmigos.asObservable();
+    return this.requestedAmigos.asObservable();
   }
 
   get receivedContacts() {
-    return this.receivedEmigos.asObservable();
+    return this.receivedAmigos.asObservable();
   }
 
   get savedContacts() {
-    return this.savedEmigos.asObservable();
+    return this.savedAmigos.asObservable();
   }
 
   get allContacts() {
-    return this.allEmigos.asObservable();
+    return this.allAmigos.asObservable();
   }
 
   get hiddenContacts() {
-    return this.hiddenEmigos.asObservable();
+    return this.hiddenAmigos.asObservable();
   }
 
   get pendingContacts() {
-    return this.pendingEmigos.asObservable();
+    return this.pendingAmigos.asObservable();
   }
 
   get showFeed() {
@@ -210,28 +210,28 @@ export class EmigoService {
   }
 
   public setAppProperty(key: string, obj: any): Promise<void> {
-    return this.storeService.setAppProperty(this.emigoId, "app_" + key, obj);
+    return this.storeService.setAppProperty(this.amigoId, "app_" + key, obj);
   }
 
   public getAppProperty(key: string): Promise<any> {
-    return this.storeService.getAppProperty(this.emigoId, "app_" + key);
+    return this.storeService.getAppProperty(this.amigoId, "app_" + key);
   }
 
   public clearAppProperty(key: string, obj: any): Promise<void> {
-    return this.storeService.clearAppProperty(this.emigoId, "app_" + key);
+    return this.storeService.clearAppProperty(this.amigoId, "app_" + key);
   }
 
   // set account, validate token, return permissions, and periodically synchronize
-  public async setEmigo(emigoId: string, registry: string, token: string, serviceNode: string, serviceToken: string, 
+  public async setAmigo(amigoId: string, registry: string, token: string, serviceNode: string, serviceToken: string, 
       attributeFilter: string[], subjectFilter: string[], tagFilter: string,
-      searchableEmigo: any, searchableSubject: any,
+      searchableAmigo: any, searchableSubject: any,
       stale: number = 86400, refresh: number = 60) {
 
     // clear any perviously set account
-    this.clearEmigo();
+    this.clearAmigo();
     
     // set new account
-    this.emigoId = emigoId;
+    this.amigoId = amigoId;
     this.token = token;
     this.registry = registry;
     this.serviceNode = serviceNode;
@@ -239,7 +239,7 @@ export class EmigoService {
     this.attributeFilter = attributeFilter;
     this.subjectFilter = subjectFilter;
     this.tagFilter = tagFilter;
-    this.searchableEmigo = searchableEmigo;
+    this.searchableAmigo = searchableAmigo;
     this.searchableSubject = searchableSubject;
     this.stale = stale;
 
@@ -247,19 +247,19 @@ export class EmigoService {
     this.revision = { identity: 0, group: 0, index: 0, profile: 0, show: 0, share: 0 };
 
     // import account if access and identity have not already been stored
-    let access: ServiceAccess = await this.storeService.setAccount(emigoId);
-    let emigo: Emigo = await this.storeService.getAppProperty(this.emigoId, Prop.IDENTITY);
-    if(access == null || emigo == null) {
+    let access: ServiceAccess = await this.storeService.setAccount(amigoId);
+    let amigo: Amigo = await this.storeService.getAppProperty(this.amigoId, Prop.IDENTITY);
+    if(access == null || amigo == null) {
 
       // retrieve identity
-      let msg: EmigoMessage = await this.registryService.getMessage(registry, this.emigoId);
-      emigo = getEmigoObject(msg);
-      this.identityEmigo.next(emigo);
-      this.node = emigo.node;
-      this.registry = emigo.registry;
-      await this.storeService.setAppProperty(this.emigoId, Prop.IDENTITY, emigo);
-      this.revision.identity = emigo.revision;
-      this.identityEmigo.next(emigo);
+      let msg: AmigoMessage = await this.registryService.getMessage(registry, this.amigoId);
+      amigo = getAmigoObject(msg);
+      this.identityAmigo.next(amigo);
+      this.node = amigo.node;
+      this.registry = amigo.registry;
+      await this.storeService.setAppProperty(this.amigoId, Prop.IDENTITY, amigo);
+      this.revision.identity = amigo.revision;
+      this.identityAmigo.next(amigo);
 
       // retrieve access
       this.access = await this.tokenService.getAccess(this.node, this.token);
@@ -278,28 +278,28 @@ export class EmigoService {
       this.access = access;      
 
       // retrieve identity
-      this.identityEmigo.next(emigo);
-      this.registry = emigo.registry;
-      this.node = emigo.node;
-      this.identityEmigo.next(emigo);
+      this.identityAmigo.next(amigo);
+      this.registry = amigo.registry;
+      this.node = amigo.node;
+      this.identityAmigo.next(amigo);
 
       // retrieve attributes
-      let a: AttributeEntry[] = await this.storeService.getAttributes(this.emigoId);
+      let a: AttributeEntry[] = await this.storeService.getAttributes(this.amigoId);
       this.attributeEntries.next(a);
 
       // retrieve labels
-      let l: LabelEntry[] = await this.storeService.getLabels(this.emigoId);
+      let l: LabelEntry[] = await this.storeService.getLabels(this.amigoId);
       this.labelEntries.next(l);
 
       // refresh contacts
-      this.refreshEmigos();
+      this.refreshAmigos();
       this.refreshContacts();
       this.refreshPending();
       this.refreshShowFeed();
       this.refreshViewFeed();
 
       // retrieve revision
-      let r = await this.storeService.getAppProperty(this.emigoId, Prop.REVISION);
+      let r = await this.storeService.getAppProperty(this.amigoId, Prop.REVISION);
       if(r != null) {
         this.revision = r;
       }
@@ -313,7 +313,7 @@ export class EmigoService {
   }
 
   // clear account
-  public clearEmigo(): void {
+  public clearAmigo(): void {
 
     if(this.syncInterval != null) {
       clearInterval(this.syncInterval);
@@ -323,26 +323,26 @@ export class EmigoService {
     this.viewService.clearAuth();
     this.contactService.clearAuth();
 
-    this.emigoLabel = null;
-    this.emigoSearch = null;
+    this.amigoLabel = null;
+    this.amigoSearch = null;
     this.showLabel = null;
     this.showSearch = null;
     this.viewLabel = null;
     this.viewSearch = null;
-    this.emigoId = null;
-    this.selectedEmigo.next(null);
+    this.amigoId = null;
+    this.selectedAmigo.next(null);
     this.labelEntries.next([]);
     this.attributeEntries.next([]);
-    this.filteredEmigos.next([]);
-    this.connectedEmigos.next([]);
-    this.receivedEmigos.next([]);
-    this.requestedEmigos.next([]);
-    this.savedEmigos.next([]);
-    this.allEmigos.next([]);
-    this.pendingEmigos.next([]);
+    this.filteredAmigos.next([]);
+    this.connectedAmigos.next([]);
+    this.receivedAmigos.next([]);
+    this.requestedAmigos.next([]);
+    this.savedAmigos.next([]);
+    this.allAmigos.next([]);
+    this.pendingAmigos.next([]);
     this.showSubjects.next([]);
     this.viewSubjects.next([]);
-    this.identityEmigo.next(null);
+    this.identityAmigo.next(null);
   }
 
   private async importAccount(registry: string) {
@@ -359,27 +359,27 @@ export class EmigoService {
       // retrieve each contact
       let d: Date = new Date();
       let cur: number = Math.floor(d.getDate() / 1000);
-      let updates: EmigoUpdate[] = await this.storeService.getEmigoUpdates(this.emigoId);
+      let updates: AmigoUpdate[] = await this.storeService.getAmigoUpdates(this.amigoId);
       for(let i = 0; i < updates.length; i++) {
 
         // update identity
-        await this.syncEmigoIdentity(updates[i]);
+        await this.syncAmigoIdentity(updates[i]);
 
         // update attributes
-        await this.syncEmigoAttributes(updates[i]);
+        await this.syncAmigoAttributes(updates[i]);
 
         // update subjects
-        await this.syncEmigoSubjects(updates[i]);
+        await this.syncAmigoSubjects(updates[i]);
 
         // set updated timestamp
-        await this.storeService.setEmigoUpdateTimestamp(this.emigoId, updates[i].emigoId, cur);
+        await this.storeService.setAmigoUpdateTimestamp(this.amigoId, updates[i].amigoId, cur);
       }
 
       // store revision
-      await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+      await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
 
       // store access
-      await this.storeService.setAppAccount(this.emigoId, this.access);
+      await this.storeService.setAppAccount(this.amigoId, this.access);
     }
     catch(e) {
       console.log("import failed");
@@ -387,7 +387,7 @@ export class EmigoService {
     }
   }
 
-  private async syncEmigoIdentity(update: EmigoUpdate) {
+  private async syncAmigoIdentity(update: AmigoUpdate) {
 
     // sync with index
     if(this.access.enableIndex == true) {
@@ -396,27 +396,27 @@ export class EmigoService {
       let refresh: boolean = false;
 
       try {
-        let indexRevision: number = await this.indexService.getEmigoRevision(this.node, this.token, update.emigoId);
+        let indexRevision: number = await this.indexService.getAmigoRevision(this.node, this.token, update.amigoId);
         if(indexRevision != update.identityRevision) {
-          let emigo: Emigo = await this.indexService.getEmigoIdentity(this.node, this.token, update.emigoId);
-          update.node = emigo.node;
-          update.registry = emigo.registry;
-          update.identityRevision = emigo.revision;
-          await this.storeService.setEmigoIdentity(this.emigoId, update.emigoId, emigo, this.searchableEmigo);
+          let amigo: Amigo = await this.indexService.getAmigoIdentity(this.node, this.token, update.amigoId);
+          update.node = amigo.node;
+          update.registry = amigo.registry;
+          update.identityRevision = amigo.revision;
+          await this.storeService.setAmigoIdentity(this.amigoId, update.amigoId, amigo, this.searchableAmigo);
           update.identityRevision = indexRevision;
           refresh = true;
         }
 
         // sync with registry
         if(update.registry != null) {
-          let registryRevision: number = await this.registryService.getRevision(update.registry, update.emigoId);
+          let registryRevision: number = await this.registryService.getRevision(update.registry, update.amigoId);
           if(registryRevision != update.identityRevision) {
-            let msg: EmigoMessage = await this.registryService.getMessage(update.registry, update.emigoId);
-            let emigo: Emigo = await this.indexService.setEmigo(this.node, this.token, msg);
-            update.node = emigo.node;
-            update.registry = emigo.registry;
-            update.identityRevision = emigo.revision;
-            await this.storeService.setEmigoIdentity(this.emigoId, update.emigoId, emigo, this.searchableEmigo);
+            let msg: AmigoMessage = await this.registryService.getMessage(update.registry, update.amigoId);
+            let amigo: Amigo = await this.indexService.setAmigo(this.node, this.token, msg);
+            update.node = amigo.node;
+            update.registry = amigo.registry;
+            update.identityRevision = amigo.revision;
+            await this.storeService.setAmigoIdentity(this.amigoId, update.amigoId, amigo, this.searchableAmigo);
             update.identityRevision = registryRevision;
             refresh = true;
           }
@@ -424,19 +424,19 @@ export class EmigoService {
 
         // if contacts should refresh
         if(refresh) {
-          await this.refreshEmigos();
+          await this.refreshAmigos();
           await this.refreshContacts();
         }
       }
       catch(e) {
-        if(this.emigoId != null) {
+        if(this.amigoId != null) {
           console.error(e);
         }
       }
     }
   }
 
-  private async syncEmigoAttributes(update: EmigoUpdate) {
+  private async syncAmigoAttributes(update: AmigoUpdate) {
 
     // flag if contacts should refresh
     let refresh: boolean = false;
@@ -457,7 +457,7 @@ export class EmigoService {
           }
 
           // get local attributes
-          let local: AttributeView[] = await this.storeService.getEmigoAttributeViews(this.emigoId, update.emigoId);
+          let local: AttributeView[] = await this.storeService.getAmigoAttributeViews(this.amigoId, update.amigoId);
           let localMap: Map<string, number> = new Map<string, number>();
           for(let i = 0; i < local.length; i++) {
             localMap.set(local[i].attributeId, local[i].revision);
@@ -468,13 +468,13 @@ export class EmigoService {
             if(!localMap.has(key)) {
               let a: Attribute = await this.contactService.getAttribute(this.serviceNode, this.serviceToken,
                 update.node, update.token, key);
-              await this.storeService.addEmigoAttribute(this.emigoId, update.emigoId, a);
+              await this.storeService.addAmigoAttribute(this.amigoId, update.amigoId, a);
               refresh = true;
             }
             else if(localMap.get(key) != value) {
               let a: Attribute = await this.contactService.getAttribute(this.serviceNode, this.serviceToken,
                 update.node, update.token, key);
-              await this.storeService.updateEmigoAttribute(this.emigoId, update.emigoId, a);
+              await this.storeService.updateAmigoAttribute(this.amigoId, update.amigoId, a);
               refresh = true;
             }
           });
@@ -482,45 +482,45 @@ export class EmigoService {
           // remove any local entry not in remote
           await this.asyncForEach(localMap, async (value, key) => {
             if(!remoteMap.has(key)) {
-              await this.storeService.removeEmigoAttribute(this.emigoId, update.emigoId, key);
+              await this.storeService.removeAmigoAttribute(this.amigoId, update.amigoId, key);
               refresh = true;
             }
           });
 
           // set updated revision
-          await this.storeService.setEmigoAttributeRevision(this.emigoId, update.emigoId, revision);
+          await this.storeService.setAmigoAttributeRevision(this.amigoId, update.amigoId, revision);
           update.attributeRevision = revision;
         }
       }
       else {
 
         // remove any attributes
-        let local: AttributeView[] = await this.storeService.getEmigoAttributeViews(this.emigoId, update.emigoId);
+        let local: AttributeView[] = await this.storeService.getAmigoAttributeViews(this.amigoId, update.amigoId);
         for(let i = 0; i < local.length; i++) {
-          await this.storeService.removeEmigoAttribute(this.emigoId, update.emigoId, local[i].attributeId);
+          await this.storeService.removeAmigoAttribute(this.amigoId, update.amigoId, local[i].attributeId);
           refresh = true;
         }
         
         // clear revision
         if(update.attributeRevision != null) {  
-          await this.storeService.setEmigoAttributeRevision(this.emigoId, update.emigoId, null);
+          await this.storeService.setAmigoAttributeRevision(this.amigoId, update.amigoId, null);
         }
       }
 
       // refresh contacst
       if(refresh) {
-        await this.refreshEmigos();
+        await this.refreshAmigos();
         await this.refreshContacts();
       }
     }
     catch(e) {
-      if(this.emigoId != null) {
+      if(this.amigoId != null) {
         console.error(e);
       }
     }
   }
 
-  private async syncEmigoSubjects(update: EmigoUpdate) {
+  private async syncAmigoSubjects(update: AmigoUpdate) {
 
     // flag if contacts should refresh
     let refresh: boolean = false;
@@ -541,7 +541,7 @@ export class EmigoService {
           }
 
           // get local subjects
-          let local: SubjectView[] = await this.storeService.getEmigoSubjectViews(this.emigoId, update.emigoId);
+          let local: SubjectView[] = await this.storeService.getAmigoSubjectViews(this.amigoId, update.amigoId);
           let localMap: Map<string, any> = new Map<string, any>();
           for(let i = 0; i < local.length; i++) {
             localMap.set(local[i].subjectId, { subject: local[i].revision, tag: local[i].tagRevision });
@@ -551,25 +551,25 @@ export class EmigoService {
           await this.asyncForEach(remoteMap, async (value, key) => {
             if(!localMap.has(key)) {
               let subject: Subject = await this.viewService.getSubject(this.serviceNode, this.serviceToken, update.node, update.token, key);
-              await this.storeService.addEmigoSubject(this.emigoId, update.emigoId, subject, this.searchableSubject);
+              await this.storeService.addAmigoSubject(this.amigoId, update.amigoId, subject, this.searchableSubject);
               if(value.tag != null) {
                 let tag: SubjectTag = await this.viewService.getSubjectTags(this.serviceNode, this.serviceToken, update.node, update.token, 
                     key, this.tagFilter);
-                await this.storeService.updateEmigoSubjectTags(this.emigoId, update.emigoId, key, tag.revision, tag.tags);
+                await this.storeService.updateAmigoSubjectTags(this.amigoId, update.amigoId, key, tag.revision, tag.tags);
               }
               refresh = true;
             }
             else {
               if(localMap.get(key).subject != value.subject) {
                 let subject: Subject = await this.viewService.getSubject(this.serviceNode, this.serviceToken, update.node, update.token, key);
-                await this.storeService.updateEmigoSubject(this.emigoId, update.emigoId, subject, this.searchableSubject);
+                await this.storeService.updateAmigoSubject(this.amigoId, update.amigoId, subject, this.searchableSubject);
                 refresh = true;
               }
 
               if(localMap.get(key).tag != value.tag) {
                 let tag: SubjectTag = await this.viewService.getSubjectTags(this.serviceNode, this.serviceToken, update.node, update.token, 
                     key, this.tagFilter);
-                await this.storeService.updateEmigoSubjectTags(this.emigoId, update.emigoId, key, tag.revision, tag.tags);
+                await this.storeService.updateAmigoSubjectTags(this.amigoId, update.amigoId, key, tag.revision, tag.tags);
                 refresh = true;
               }
             }
@@ -578,28 +578,28 @@ export class EmigoService {
           // remove any local entry not in remote
           await this.asyncForEach(localMap, async (value, key) => {
             if(!remoteMap.has(key)) {
-              await this.storeService.removeEmigoSubject(this.emigoId, update.emigoId, key);
+              await this.storeService.removeAmigoSubject(this.amigoId, update.amigoId, key);
               refresh = true;
             }
           });
 
           // set updated revision
-          await this.storeService.setEmigoSubjectRevision(this.emigoId, update.emigoId, revision);
+          await this.storeService.setAmigoSubjectRevision(this.amigoId, update.amigoId, revision);
           update.subjectRevision = revision;
         }
       }
       else {
 
         // remove any subjects
-        let local: SubjectView[] = await this.storeService.getEmigoSubjectViews(this.emigoId, update.emigoId);
+        let local: SubjectView[] = await this.storeService.getAmigoSubjectViews(this.amigoId, update.amigoId);
         for(let i = 0; i < local.length; i++) {
-          await this.storeService.removeEmigoSubject(this.emigoId, update.emigoId, local[i].subjectId);
+          await this.storeService.removeAmigoSubject(this.amigoId, update.amigoId, local[i].subjectId);
           refresh = true;
         }
 
         // clear revision
         if(update.subjectRevision != null) {
-          await this.storeService.setEmigoSubjectRevision(this.emigoId, update.emigoId, null);
+          await this.storeService.setAmigoSubjectRevision(this.amigoId, update.amigoId, null);
         }
       }
 
@@ -609,7 +609,7 @@ export class EmigoService {
       }
     }
     catch(e) {
-      if(this.emigoId != null) {
+      if(this.amigoId != null) {
         console.error(e);
       } 
     }
@@ -633,7 +633,7 @@ export class EmigoService {
           }
 
           // get local subject entries
-          let local: SubjectView[] = await this.storeService.getSubjectViews(this.emigoId);
+          let local: SubjectView[] = await this.storeService.getSubjectViews(this.amigoId);
           let localMap: Map<string, any> = new Map<string, any>();
           for(let i = 0; i < local.length; i++) {
             localMap.set(local[i].subjectId, { subject: local[i].revision, tag: local[i].tagRevision });
@@ -644,31 +644,31 @@ export class EmigoService {
 
             if(!localMap.has(key)) {
               let entry: SubjectEntry = await this.showService.getSubject(this.node, this.token, key);
-              await this.storeService.addSubject(this.emigoId, entry, this.searchableSubject);
-              await this.storeService.clearSubjectLabels(this.emigoId, key);
+              await this.storeService.addSubject(this.amigoId, entry, this.searchableSubject);
+              await this.storeService.clearSubjectLabels(this.amigoId, key);
               for(let i = 0; i < entry.labels.length; i++) {
-                await this.storeService.setSubjectLabel(this.emigoId, key, entry.labels[i]);
+                await this.storeService.setSubjectLabel(this.amigoId, key, entry.labels[i]);
               }
               if(value.tag != 0) {
                 let tag: SubjectTag = await this.showService.getSubjectTags(this.node, this.token, key, this.tagFilter);
-                await this.storeService.updateSubjectTags(this.emigoId, key, tag.revision, tag.tags);
+                await this.storeService.updateSubjectTags(this.amigoId, key, tag.revision, tag.tags);
               }
               refresh = true;
             }
             else {
               if(localMap.get(key).subject != value.subject) {
                 let entry: SubjectEntry = await this.showService.getSubject(this.node, this.token, key);
-                await this.storeService.updateSubject(this.emigoId, entry, this.searchableSubject);
-                await this.storeService.clearSubjectLabels(this.emigoId, key);
+                await this.storeService.updateSubject(this.amigoId, entry, this.searchableSubject);
+                await this.storeService.clearSubjectLabels(this.amigoId, key);
                 for(let i = 0; i < entry.labels.length; i++) {
-                  await this.storeService.setSubjectLabel(this.emigoId, key, entry.labels[i]);
+                  await this.storeService.setSubjectLabel(this.amigoId, key, entry.labels[i]);
                 }
                 refresh = true;
               }
 
               if(localMap.get(key).tag != value.tag) {
                 let tag: SubjectTag = await this.showService.getSubjectTags(this.node, this.token, key, this.tagFilter);
-                await this.storeService.updateSubjectTags(this.emigoId, key, tag.revision, tag.tags);
+                await this.storeService.updateSubjectTags(this.amigoId, key, tag.revision, tag.tags);
                 refresh = true;
               }
             }
@@ -677,7 +677,7 @@ export class EmigoService {
           // remove any local entry not in remote
           await this.asyncForEach(localMap, async (value, key) => {
             if(!remoteMap.has(key)) {
-              await this.storeService.removeSubject(this.emigoId, key);
+              await this.storeService.removeSubject(this.amigoId, key);
               refresh = true;
             }
           });
@@ -689,11 +689,11 @@ export class EmigoService {
 
           // upldate group revision
           this.revision.show = r;
-          await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+          await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
         }
       }
       catch(e) {
-        if(this.emigoId != null) {
+        if(this.amigoId != null) {
           console.error(e);
         }
       }
@@ -719,7 +719,7 @@ export class EmigoService {
           }
 
           // get local attribute entries
-          let local: AttributeView[] = await this.storeService.getAttributeViews(this.emigoId);
+          let local: AttributeView[] = await this.storeService.getAttributeViews(this.amigoId);
           let localMap: Map<string, number> = new Map<string, number>();
           for(let i = 0; i < local.length; i++) {
             localMap.set(local[i].attributeId, local[i].revision);
@@ -731,10 +731,10 @@ export class EmigoService {
 
               // add any remote entry not local
               let entry: AttributeEntry = await this.profileService.getAttribute(this.node, this.token, key);
-              await this.storeService.addAttribute(this.emigoId, entry.attribute);
-              await this.storeService.clearAttributeLabels(this.emigoId, entry.attribute.attributeId);
+              await this.storeService.addAttribute(this.amigoId, entry.attribute);
+              await this.storeService.clearAttributeLabels(this.amigoId, entry.attribute.attributeId);
               for(let i = 0; i < entry.labels.length; i++) {
-                await this.storeService.setAttributeLabel(this.emigoId, key, entry.labels[i]);
+                await this.storeService.setAttributeLabel(this.amigoId, key, entry.labels[i]);
               }
               refresh = true;  
             }
@@ -742,10 +742,10 @@ export class EmigoService {
 
               // update any entry with different revision
               let entry: AttributeEntry = await this.profileService.getAttribute(this.node, this.token, key);
-              await this.storeService.updateAttribute(this.emigoId, entry.attribute);
-              await this.storeService.clearEmigoLabels(this.emigoId, entry.attribute.attributeId);
+              await this.storeService.updateAttribute(this.amigoId, entry.attribute);
+              await this.storeService.clearAmigoLabels(this.amigoId, entry.attribute.attributeId);
               for(let i = 0; i < entry.labels.length; i++) {
-                await this.storeService.setAttributeLabel(this.emigoId, entry.attribute.attributeId, entry.labels[i]);
+                await this.storeService.setAttributeLabel(this.amigoId, entry.attribute.attributeId, entry.labels[i]);
               }
               refresh = true
             }
@@ -754,24 +754,24 @@ export class EmigoService {
           // remove any local entry not in remote
           await this.asyncForEach(localMap, async (value, key) => {
             if(!remoteMap.has(key)) {
-              await this.storeService.removeAttribute(this.emigoId, key);
+              await this.storeService.removeAttribute(this.amigoId, key);
               refresh = true;
             }
           });
 
           // upldate group revision
           this.revision.profile = r;
-          await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+          await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
           
           // push attributes to app
           if(refresh) {
-            let entries: AttributeEntry[] = await this.storeService.getAttributes(this.emigoId);
+            let entries: AttributeEntry[] = await this.storeService.getAttributes(this.amigoId);
             this.attributeEntries.next(entries);
           }
         }
       }
       catch(e) {
-        if(this.emigoId != null) {
+        if(this.amigoId != null) {
           console.error(e);
         }
       }
@@ -787,21 +787,21 @@ export class EmigoService {
         let r = await this.indexService.getRevision(this.node, this.token);
         if(this.revision.index != r) {
 
-          // flag if emigos should refresh
+          // flag if amigos should refresh
           let refresh: boolean = false;
 
           // get remote view
-          let remote: EmigoView[] = await this.indexService.getEmigoViews(this.node, this.token);
+          let remote: AmigoView[] = await this.indexService.getAmigoViews(this.node, this.token);
           let remoteMap: Map<string, number> = new Map<string, number>();
           for(let i = 0; i < remote.length; i++) {
-            remoteMap.set(remote[i].emigoId, remote[i].revision);
+            remoteMap.set(remote[i].amigoId, remote[i].revision);
           }
 
           // get local view
-          let local: EmigoView[] = await this.storeService.getEmigoViews(this.emigoId);
+          let local: AmigoView[] = await this.storeService.getAmigoViews(this.amigoId);
           let localMap: Map<string, number> = new Map<string, number>();
           for(let i = 0; i < local.length; i++) {
-            localMap.set(local[i].emigoId, local[i].revision);
+            localMap.set(local[i].amigoId, local[i].revision);
           }
 
           await this.asyncForEach(remoteMap, async (value, key) => {
@@ -809,22 +809,22 @@ export class EmigoService {
             if(!localMap.has(key)) {
               
               // add any remote entry not local
-              let emigo: EmigoEntry = await this.indexService.getEmigo(this.node, this.token, key);
-              await this.storeService.addEmigo(this.emigoId, emigo.emigoId, emigo.notes, emigo.revision);
-              await this.storeService.clearEmigoLabels(this.emigoId, emigo.emigoId);
-              for(let i = 0; i < emigo.labels.length; i++) {
-                await this.storeService.setEmigoLabel(this.emigoId, key, emigo.labels[i]);
+              let amigo: AmigoEntry = await this.indexService.getAmigo(this.node, this.token, key);
+              await this.storeService.addAmigo(this.amigoId, amigo.amigoId, amigo.notes, amigo.revision);
+              await this.storeService.clearAmigoLabels(this.amigoId, amigo.amigoId);
+              for(let i = 0; i < amigo.labels.length; i++) {
+                await this.storeService.setAmigoLabel(this.amigoId, key, amigo.labels[i]);
               }
               refresh = true;  
             }
             else if(localMap.get(key) != value) {
 
               // update any entry with different revision
-              let emigo: EmigoEntry = await this.indexService.getEmigo(this.node, this.token, key);
-              await this.storeService.updateEmigo(this.emigoId, emigo.emigoId, emigo.notes, emigo.revision);
-              await this.storeService.clearEmigoLabels(this.emigoId, emigo.emigoId);
-              for(let i = 0; i < emigo.labels.length; i++) {
-                await this.storeService.setEmigoLabel(this.emigoId, emigo.emigoId, emigo.labels[i]);
+              let amigo: AmigoEntry = await this.indexService.getAmigo(this.node, this.token, key);
+              await this.storeService.updateAmigo(this.amigoId, amigo.amigoId, amigo.notes, amigo.revision);
+              await this.storeService.clearAmigoLabels(this.amigoId, amigo.amigoId);
+              for(let i = 0; i < amigo.labels.length; i++) {
+                await this.storeService.setAmigoLabel(this.amigoId, amigo.amigoId, amigo.labels[i]);
               }
               refresh = true
             }
@@ -833,26 +833,26 @@ export class EmigoService {
           // remove any local entry not in remote
           await this.asyncForEach(localMap, async (value, key) => {
             if(!remoteMap.has(key)) {
-              await this.storeService.removeEmigo(this.emigoId, key);
+              await this.storeService.removeAmigo(this.amigoId, key);
               refresh = true;
             }
           });
 
           // retrieve remote list of pending shares
-          let remoteReq: PendingEmigoView[] = await this.indexService.getPendingRequests(this.node, this.token);
+          let remoteReq: PendingAmigoView[] = await this.indexService.getPendingRequests(this.node, this.token);
           let remoteReqMap: Map<string, number> = new Map<string, number>();
           for(let i = 0; i < remoteReq.length; i++) {
             remoteReqMap.set(remoteReq[i].shareId, remoteReq[i].revision);
           }
 
           // retrieve local list of pending shares
-          let localReq: PendingEmigoView[] = await this.storeService.getPendingViews(this.emigoId);
+          let localReq: PendingAmigoView[] = await this.storeService.getPendingViews(this.amigoId);
           let localReqMap: Map<string, number> = new Map<string, number>();
           for(let i = 0; i < localReq.length; i++) {
             localReqMap.set(localReq[i].shareId, localReq[i].revision);
           } 
 
-          // flag if pending emigos should refresh
+          // flag if pending amigos should refresh
           let pending: boolean = false;
 
           // add any new pending requests
@@ -861,15 +861,15 @@ export class EmigoService {
             if(!localReqMap.has(key)) {
 
               // add any remote entry not local
-              let emigo: PendingEmigo = await this.indexService.getPendingRequest(this.node, this.token, key);
-              await this.storeService.addPending(this.emigoId, emigo);
+              let amigo: PendingAmigo = await this.indexService.getPendingRequest(this.node, this.token, key);
+              await this.storeService.addPending(this.amigoId, amigo);
               pending = true;
             }
             else if(localReqMap.get(key) != value) {
   
               // add any entry with different revision
-              let emigo: PendingEmigo = await this.indexService.getPendingRequest(this.node, this.token, key);
-              await this.storeService.updatePending(this.emigoId, key, emigo);
+              let amigo: PendingAmigo = await this.indexService.getPendingRequest(this.node, this.token, key);
+              await this.storeService.updatePending(this.amigoId, key, amigo);
               pending = true; 
             }
           });
@@ -877,14 +877,14 @@ export class EmigoService {
           // remove old pending requests
           this.asyncForEach(localReqMap, async (value, key) => {
             if(!remoteReqMap.has(key)) {
-              await this.storeService.removePending(this.emigoId, key);
+              await this.storeService.removePending(this.amigoId, key);
               pending = true;
             }
           });
 
           // refresh contacts
           if(refresh) {
-            await this.refreshEmigos();
+            await this.refreshAmigos();
             await this.refreshContacts();
           }
 
@@ -895,11 +895,11 @@ export class EmigoService {
 
           // upldate group revision
           this.revision.index = r;
-          await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+          await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
         }
       }
       catch(e) {
-        if(this.emigoId != null) {
+        if(this.amigoId != null) {
           console.log(e);
         }
       }
@@ -924,7 +924,7 @@ export class EmigoService {
           }
 
           // get local share entries
-          let local: ShareView[] = await this.storeService.getConnectionViews(this.emigoId);
+          let local: ShareView[] = await this.storeService.getConnectionViews(this.amigoId);
           let localMap: Map<string, number> = new Map<string, number>();
           for(let i = 0; i < local.length; i++) {
             localMap.set(local[i].shareId, local[i].revision);
@@ -934,12 +934,12 @@ export class EmigoService {
           await this.asyncForEach(remoteMap, async (value, key) => {
             if(!localMap.has(key)) {
               let entry: ShareEntry = await this.shareService.getConnection(this.node, this.token, key);
-              await this.storeService.addConnection(this.emigoId, entry);
+              await this.storeService.addConnection(this.amigoId, entry);
               refresh = true;
             }
             else if(localMap.get(key) != value) {
               let entry: ShareEntry = await this.shareService.getConnection(this.node, this.token, key);
-              await this.storeService.updateConnection(this.emigoId, entry);
+              await this.storeService.updateConnection(this.amigoId, entry);
               refresh = true;
             }
           });
@@ -947,24 +947,24 @@ export class EmigoService {
           // remove any local entry not in remote
           await this.asyncForEach(localMap, async (value, key) => {
             if(!remoteMap.has(key)) {
-              await this.storeService.removeConnection(this.emigoId, key);
+              await this.storeService.removeConnection(this.amigoId, key);
               refresh = true;
             }
           });
     
           // upldate group revision
           this.revision.share = r;
-          await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+          await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
 
           // if contacts should refresh
           if(refresh) {
-            this.refreshEmigos();
+            this.refreshAmigos();
             this.refreshContacts();
           }
         }
       }
       catch(e) {
-        if(this.emigoId != null) {
+        if(this.amigoId != null) {
           console.log(e);
         }
       }
@@ -989,7 +989,7 @@ export class EmigoService {
           }
 
           // get local label entries
-          let local: LabelView[] = await this.storeService.getLabelViews(this.emigoId);
+          let local: LabelView[] = await this.storeService.getLabelViews(this.amigoId);
           let localMap: Map<string, number> = new Map<string, number>();
           for(let i = 0; i < local.length; i++) {
             localMap.set(local[i].labelId, local[i].revision);
@@ -999,12 +999,12 @@ export class EmigoService {
           await this.asyncForEach(remoteMap, async (value, key) => {
             if(!localMap.has(key)) {
               let entry = await this.groupService.getLabel(this.node, this.token, key);
-              await this.storeService.addLabel(this.emigoId, entry);
+              await this.storeService.addLabel(this.amigoId, entry);
               refresh = true;
             }
             else if(localMap.get(key) != value) {
               let entry = await this.groupService.getLabel(this.node, this.token, key);
-              await this.storeService.updateLabel(this.emigoId, entry);
+              await this.storeService.updateLabel(this.amigoId, entry);
               refresh = true;
             }
           });
@@ -1012,24 +1012,24 @@ export class EmigoService {
           // remove any local entry not in remote
           await this.asyncForEach(localMap, async (value, key) => {
             if(!remoteMap.has(key)) {
-              await this.storeService.removeLabel(this.emigoId, key);
+              await this.storeService.removeLabel(this.amigoId, key);
               refresh = true;
             }
           });
           
           // upldate group revision
           this.revision.group = r;
-          await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+          await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
 
           // push labels
           if(refresh) {
-            let labels: LabelEntry[] = await this.storeService.getLabels(this.emigoId);
+            let labels: LabelEntry[] = await this.storeService.getLabels(this.amigoId);
             this.labelEntries.next(labels);
           }
         }
       }
       catch(e) {
-        if(this.emigoId != null) {
+        if(this.amigoId != null) {
           console.error(e);
         }
       }
@@ -1043,13 +1043,13 @@ export class EmigoService {
       try {
         let r = await this.identityService.getRevision(this.node, this.token);
         if(this.revision.identity != r) {  
-          let emigo: Emigo = await this.identityService.getEmigo(this.node, this.token);
-          this.identityEmigo.next(emigo);
-          this.node = emigo.node;
-          this.registry = emigo.registry;
-          await this.storeService.setAppProperty(this.emigoId, Prop.IDENTITY, emigo);
-          this.revision.identity = emigo.revision;
-          await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+          let amigo: Amigo = await this.identityService.getAmigo(this.node, this.token);
+          this.identityAmigo.next(amigo);
+          this.node = amigo.node;
+          this.registry = amigo.registry;
+          await this.storeService.setAppProperty(this.amigoId, Prop.IDENTITY, amigo);
+          this.revision.identity = amigo.revision;
+          await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
         }
       }
       catch(e) {
@@ -1058,49 +1058,49 @@ export class EmigoService {
 
       try {
         if(this.registry != null) {
-          let r = await this.registryService.getRevision(this.registry, this.emigoId);
+          let r = await this.registryService.getRevision(this.registry, this.amigoId);
           if(this.revision.identity < r) {
-            let msg: EmigoMessage = await this.registryService.getMessage(this.node, this.token);
-            let emigo: Emigo = getEmigoObject(msg);
-            this.identityEmigo.next(emigo);
-            this.node = emigo.node;
-            this.registry = emigo.registry;
-            await this.storeService.setAppProperty(this.emigoId, Prop.IDENTITY, emigo);
-            this.revision.identity = emigo.revision;
-            await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+            let msg: AmigoMessage = await this.registryService.getMessage(this.node, this.token);
+            let amigo: Amigo = getAmigoObject(msg);
+            this.identityAmigo.next(amigo);
+            this.node = amigo.node;
+            this.registry = amigo.registry;
+            await this.storeService.setAppProperty(this.amigoId, Prop.IDENTITY, amigo);
+            this.revision.identity = amigo.revision;
+            await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
           }
           if(this.revision.identity > r) {
-            let msg: EmigoMessage = await this.identityService.getMessage(this.node, this.token);
-            let emigo: Emigo = getEmigoObject(msg);
-            await this.registryService.setMessage(emigo.registry, msg);
-            await this.identityService.clearDirty(this.node, this.token, emigo.revision);
+            let msg: AmigoMessage = await this.identityService.getMessage(this.node, this.token);
+            let amigo: Amigo = getAmigoObject(msg);
+            await this.registryService.setMessage(amigo.registry, msg);
+            await this.identityService.clearDirty(this.node, this.token, amigo.revision);
           }
         }
       }
       catch(e) {
-        if(this.emigoId != null) {
+        if(this.amigoId != null) {
           console.error(e);
         }
       }
     }
   }
 
-  private async setIdentity(msg: EmigoMessage) {
+  private async setIdentity(msg: AmigoMessage) {
 
     // update with identity message
-    let emigo: Emigo = getEmigoObject(msg);
-    this.identityEmigo.next(emigo);
-    this.node = emigo.node;
-    this.registry = emigo.registry;
-    await this.storeService.setAppProperty(this.emigoId, Prop.IDENTITY, emigo);
-    this.revision.identity = emigo.revision;
-    await this.storeService.setAppProperty(this.emigoId, Prop.REVISION, this.revision);
+    let amigo: Amigo = getAmigoObject(msg);
+    this.identityAmigo.next(amigo);
+    this.node = amigo.node;
+    this.registry = amigo.registry;
+    await this.storeService.setAppProperty(this.amigoId, Prop.IDENTITY, amigo);
+    this.revision.identity = amigo.revision;
+    await this.storeService.setAppProperty(this.amigoId, Prop.REVISION, this.revision);
 
     // update registry
     try {
-      if(emigo.registry != null) {
+      if(amigo.registry != null) {
         await this.registryService.setMessage(this.registry, msg);
-        await this.identityService.clearDirty(this.node, this.token, emigo.revision);
+        await this.identityService.clearDirty(this.node, this.token, amigo.revision);
       }
     }
     catch(e) {
@@ -1108,30 +1108,30 @@ export class EmigoService {
     }
   }
 
-  public async setContact(emigoId: string) {
+  public async setContact(amigoId: string) {
 
-    this.emigo = emigoId;
-    let contact: EmigoContact = await this.storeService.getContact(this.emigoId, emigoId);
-    this.selectedEmigo.next(contact);
+    this.amigo = amigoId;
+    let contact: AmigoContact = await this.storeService.getContact(this.amigoId, amigoId);
+    this.selectedAmigo.next(contact);
   }
 
-  public async setEmigoLabelFilter(l: string) {
-    this.emigoLabel = l;
-    await this.refreshEmigos();
+  public async setAmigoLabelFilter(l: string) {
+    this.amigoLabel = l;
+    await this.refreshAmigos();
   }
 
-  public async setEmigoSearchFilter(s: string) {
-    this.emigoSearch = s;
-    await this.refreshEmigos();
+  public async setAmigoSearchFilter(s: string) {
+    this.amigoSearch = s;
+    await this.refreshAmigos();
   }
 
-  private async refreshEmigos() {
+  private async refreshAmigos() {
     
     try {
-      // pull filtered emigos
-      let filtered: EmigoContact[] = await this.storeService.getContacts(this.emigoId, this.emigoLabel, 
-          this.emigoSearch, "connected", null);
-      this.filteredEmigos.next(filtered);
+      // pull filtered amigos
+      let filtered: AmigoContact[] = await this.storeService.getContacts(this.amigoId, this.amigoLabel, 
+          this.amigoSearch, "connected", null);
+      this.filteredAmigos.next(filtered);
     }
     catch(e) {
       console.error(e);
@@ -1166,7 +1166,7 @@ export class EmigoService {
 
   private async refreshViewFeed() {
     try {
-      let subjects: FeedSubject[] = await this.storeService.getEmigoFeed(this.emigoId, null, 
+      let subjects: FeedSubject[] = await this.storeService.getAmigoFeed(this.amigoId, null, 
           this.viewLabel, this.viewSearch, null);
       this.viewSubjects.next(subjects);
     }
@@ -1178,20 +1178,20 @@ export class EmigoService {
   private async refreshContacts() {
 
     try {
-      // pull unfiltered emigos
-      let contacts: EmigoContact[] = await this.storeService.getContacts(this.emigoId, null, null, null, null);
+      // pull unfiltered amigos
+      let contacts: AmigoContact[] = await this.storeService.getContacts(this.amigoId, null, null, null, null);
       
-      let contact: EmigoContact = null;
-      let connected: EmigoContact[] = [];
-      let saved: EmigoContact[] = [];
-      let received: EmigoContact[] = [];
-      let requested: EmigoContact[] = [];
-      let all: EmigoContact[] = [];
-      let hidden: EmigoContact[] = [];
+      let contact: AmigoContact = null;
+      let connected: AmigoContact[] = [];
+      let saved: AmigoContact[] = [];
+      let received: AmigoContact[] = [];
+      let requested: AmigoContact[] = [];
+      let all: AmigoContact[] = [];
+      let hidden: AmigoContact[] = [];
       for(let i = 0; i < contacts.length; i++) {
 
         // updated selected contact
-        if(this.emigo == contacts[i].emigoId) {
+        if(this.amigo == contacts[i].amigoId) {
           contact = contacts[i];
         }
 
@@ -1223,13 +1223,13 @@ export class EmigoService {
         // add to all list
         all.push(contacts[i]);
       }
-      this.selectedEmigo.next(contact);
-      this.connectedEmigos.next(connected);
-      this.savedEmigos.next(saved);
-      this.receivedEmigos.next(received);
-      this.requestedEmigos.next(requested);
-      this.allEmigos.next(all);
-      this.hiddenEmigos.next(hidden);
+      this.selectedAmigo.next(contact);
+      this.connectedAmigos.next(connected);
+      this.savedAmigos.next(saved);
+      this.receivedAmigos.next(received);
+      this.requestedAmigos.next(requested);
+      this.allAmigos.next(all);
+      this.hiddenAmigos.next(hidden);
     }
     catch(e) {
       console.error(e);
@@ -1239,9 +1239,9 @@ export class EmigoService {
   private async refreshPending() {
    
     try { 
-      // pull pending emigos
-      let emigos: PendingContact[] = await this.storeService.getPendingContacts(this.emigoId);
-      this.pendingEmigos.next(emigos);
+      // pull pending amigos
+      let amigos: PendingContact[] = await this.storeService.getPendingContacts(this.amigoId);
+      this.pendingAmigos.next(amigos);
     }
     catch(e) {
       console.error(e);
@@ -1249,29 +1249,29 @@ export class EmigoService {
   }
 
   public async setName(value: string) {
-    let msg: EmigoMessage = await this.identityService.setName(this.node, this.token, value);
+    let msg: AmigoMessage = await this.identityService.setName(this.node, this.token, value);
     await this.setIdentity(msg);
   }
 
   public async setDescription(value: string) {
-    let msg: EmigoMessage = await this.identityService.setDescription(this.node, this.token, value);
+    let msg: AmigoMessage = await this.identityService.setDescription(this.node, this.token, value);
     await this.setIdentity(msg);
   }
 
   public async setLocation(value: string) {
-    let msg: EmigoMessage = await this.identityService.setLocation(this.node, this.token, value);
+    let msg: AmigoMessage = await this.identityService.setLocation(this.node, this.token, value);
     await this.setIdentity(msg);
   }
 
   public async setImage(value: string) {
-    let msg: EmigoMessage = await this.identityService.setImage(this.node, this.token, value);
+    let msg: AmigoMessage = await this.identityService.setImage(this.node, this.token, value);
     await this.setIdentity(msg);
   }
 
   public async checkHandle(value: string): Promise<boolean> {
     
     if(this.registry != null) {
-      return this.registryService.checkHandle(this.registry, value, this.emigoId);
+      return this.registryService.checkHandle(this.registry, value, this.amigoId);
     }
     return true;
   }
@@ -1285,16 +1285,16 @@ export class EmigoService {
     }
 
     // update handle
-    let msg: EmigoMessage = await this.identityService.setHandle(this.node, this.token, value);
+    let msg: AmigoMessage = await this.identityService.setHandle(this.node, this.token, value);
     await this.setIdentity(msg);
   }
 
   public async getLabels(): Promise<LabelEntry[]> {
-    return await this.storeService.getLabels(this.emigoId);
+    return await this.storeService.getLabels(this.amigoId);
   }
 
   public async getLabel(labelId: string): Promise<LabelEntry> {
-    return await this.storeService.getLabel(this.emigoId, labelId);
+    return await this.storeService.getLabel(this.amigoId, labelId);
   }
 
   public async addLabel(name: string): Promise<LabelEntry> {
@@ -1318,11 +1318,11 @@ export class EmigoService {
   }
 
   public async getAttributes(): Promise<AttributeEntry[]> {
-    return await this.storeService.getAttributes(this.emigoId);
+    return await this.storeService.getAttributes(this.amigoId);
   }
 
   public async getAttribute(attributeId: string): Promise<AttributeEntry> {
-    return await this.storeService.getAttribute(this.emigoId, attributeId);
+    return await this.storeService.getAttribute(this.amigoId, attributeId);
   }
 
   public async addAttribute(schema: string, data: string): Promise<AttributeEntry> {
@@ -1369,31 +1369,31 @@ export class EmigoService {
   public async addSubject(schema: string): Promise<SubjectEntry> {
 
     let entry: SubjectEntry = await this.showService.addSubject(this.node, this.token, schema);
-    await this.storeService.addSubject(this.emigoId, entry, this.searchableSubject);
+    await this.storeService.addSubject(this.amigoId, entry, this.searchableSubject);
     await this.refreshShowFeed();
     return entry;
   }
 
   public async getSubject(subjectId: string): Promise<SubjectEntry> {
-    return await this.storeService.getSubject(this.emigoId, subjectId);
+    return await this.storeService.getSubject(this.amigoId, subjectId);
   }
 
   public async updateSubject(subjectId: string): Promise<FeedSubjectEntry> {
   
     // refresh unversioned asset state (asset state not versioned)
     let entry: SubjectEntry = await this.showService.getSubject(this.node, this.token, subjectId);
-    let stored: SubjectEntry = await this.storeService.getSubject(this.emigoId, subjectId);
-    await this.storeService.updateSubject(this.emigoId, entry, this.searchableSubject);
+    let stored: SubjectEntry = await this.storeService.getSubject(this.amigoId, subjectId);
+    await this.storeService.updateSubject(this.amigoId, entry, this.searchableSubject);
     if(entry.subject.revision != stored.subject.revision) {
       await this.refreshShowFeed();
     }
-    return await this.storeService.getFeedSubjectEntry(this.emigoId, subjectId);
+    return await this.storeService.getFeedSubjectEntry(this.amigoId, subjectId);
   }
 
   public async updateSubjectData(subjectId: string, schema: string, data: string): Promise<SubjectEntry> {
   
     let entry: SubjectEntry = await this.showService.updateSubjectData(this.node, this.token, subjectId, schema, data);
-    await this.storeService.updateSubject(this.emigoId, entry, this.searchableSubject);
+    await this.storeService.updateSubject(this.amigoId, entry, this.searchableSubject);
     await this.refreshShowFeed();
     return entry;
   }
@@ -1401,7 +1401,7 @@ export class EmigoService {
   public async updateSubjectShare(subjectId: string, share: boolean): Promise<SubjectEntry> {
 
     let entry: SubjectEntry = await this.showService.updateSubjectShare(this.node, this.token, subjectId, share);
-    await this.storeService.updateSubject(this.emigoId, entry, this.searchableSubject);
+    await this.storeService.updateSubject(this.amigoId, entry, this.searchableSubject);
     await this.refreshShowFeed();
     return entry;
   }
@@ -1409,7 +1409,7 @@ export class EmigoService {
   public async updateSubjectExpire(subjectId: string, expire: number): Promise<SubjectEntry> {
 
     let entry: SubjectEntry = await this.showService.updateSubjectExpire(this.node, this.token, subjectId, expire);
-    await this.storeService.updateSubject(this.emigoId, entry, this.searchableSubject);
+    await this.storeService.updateSubject(this.amigoId, entry, this.searchableSubject);
     await this.refreshShowFeed();
     return entry;
   }
@@ -1417,7 +1417,7 @@ export class EmigoService {
   public async removeSubject(subjectId: string): Promise<void> {
 
     await this.showService.removeSubject(this.node, this.token, subjectId);
-    await this.storeService.removeSubject(this.emigoId, subjectId);
+    await this.storeService.removeSubject(this.amigoId, subjectId);
     await this.refreshShowFeed();
   }
 
@@ -1430,7 +1430,7 @@ export class EmigoService {
   public async setSubjectLabels(subjectId: string, labelIds: string[]): Promise<SubjectEntry> {
 
     let entry: SubjectEntry = await this.showService.setSubjectLabels(this.node, this.token, subjectId, labelIds);
-    await this.storeService.updateSubject(this.emigoId, entry, this.searchableSubject);
+    await this.storeService.updateSubject(this.amigoId, entry, this.searchableSubject);
     await this.refreshShowFeed();
     return entry;
   }
@@ -1438,7 +1438,7 @@ export class EmigoService {
   public async setSubjectLabel(subjectId: string, labelId: string): Promise<SubjectEntry> {
 
     let entry: SubjectEntry = await this.showService.setSubjectLabel(this.node, this.token, subjectId, labelId);
-    await this.storeService.updateSubject(this.emigoId, entry, this.searchableSubject);
+    await this.storeService.updateSubject(this.amigoId, entry, this.searchableSubject);
     await this.refreshShowFeed();
     return entry;
   }
@@ -1446,47 +1446,47 @@ export class EmigoService {
   public async clearSubjectLabel(subjectId: string, labelId: string): Promise<SubjectEntry> {
 
     let entry: SubjectEntry = await this.showService.clearSubjectLabel(this.node, this.token, subjectId, labelId);
-    await this.storeService.updateSubject(this.emigoId, entry, this.searchableSubject);
+    await this.storeService.updateSubject(this.amigoId, entry, this.searchableSubject);
     await this.refreshShowFeed();
     return entry;
   }
 
   public async getSubjectTags(subjectId: string): Promise<Tag[]> {
-    return await this.storeService.getSubjectTags(this.emigoId, subjectId);
+    return await this.storeService.getSubjectTags(this.amigoId, subjectId);
   }
 
-  public async getEmigoSubjectTags(emigoId: string, subjectId: string): Promise<Tag[]> {
-    return await this.storeService.getEmigoSubjectTags(this.emigoId, emigoId, subjectId);
+  public async getAmigoSubjectTags(amigoId: string, subjectId: string): Promise<Tag[]> {
+    return await this.storeService.getAmigoSubjectTags(this.amigoId, amigoId, subjectId);
   }
 
   public async addSubjectTag(subjectId: string, data: string): Promise<Tag[]> {
     let t = await this.showService.addSubjectTag(this.node, this.token, subjectId, this.tagFilter, data);
-    await this.storeService.updateSubjectTags(this.emigoId, subjectId, t.revision, t.tags);
+    await this.storeService.updateSubjectTags(this.amigoId, subjectId, t.revision, t.tags);
     await this.refreshShowFeed();
     return t.tags;
   }
 
-  public async addEmigoSubjectTag(emigoId: string, subjectId: string, data: string): Promise<Tag[]> {
-    let update: EmigoUpdate = await this.storeService.getEmigoUpdate(this.emigoId, emigoId);
+  public async addAmigoSubjectTag(amigoId: string, subjectId: string, data: string): Promise<Tag[]> {
+    let update: AmigoUpdate = await this.storeService.getAmigoUpdate(this.amigoId, amigoId);
     let t = await this.viewService.addSubjectTags(this.serviceNode, this.serviceToken, update.node, update.token,
         subjectId, this.tagFilter, data);
-    await this.storeService.updateEmigoSubjectTags(this.emigoId, emigoId, subjectId, t.revision, t.tags);
+    await this.storeService.updateAmigoSubjectTags(this.amigoId, amigoId, subjectId, t.revision, t.tags);
     await this.refreshViewFeed();
     return t.tags;
   }
 
   public async removeSubjectTag(subjectId: string, tagId: string): Promise<Tag[]> {
     let t = await this.showService.removeSubjectTag(this.node, this.token, subjectId, tagId, this.tagFilter);
-    await this.storeService.updateSubjectTags(this.emigoId, subjectId, t.revision, t.tags);
+    await this.storeService.updateSubjectTags(this.amigoId, subjectId, t.revision, t.tags);
     await this.refreshShowFeed();
     return t.tags;
   }
 
-  public async removeEmigoSubjectTag(emigoId: string, subjectId: string, tagId: string): Promise<Tag[]> {
-    let update: EmigoUpdate = await this.storeService.getEmigoUpdate(this.emigoId, emigoId);
+  public async removeAmigoSubjectTag(amigoId: string, subjectId: string, tagId: string): Promise<Tag[]> {
+    let update: AmigoUpdate = await this.storeService.getAmigoUpdate(this.amigoId, amigoId);
     let t = await this.viewService.removeSubjectTags(this.serviceNode, this.serviceToken, update.node, update.token,
         subjectId, tagId, this.tagFilter);
-    await this.storeService.updateEmigoSubjectTags(this.emigoId, emigoId, subjectId, t.revision, t.tags);
+    await this.storeService.updateAmigoSubjectTags(this.amigoId, amigoId, subjectId, t.revision, t.tags);
     await this.refreshViewFeed();
     return t.tags;
   }
@@ -1499,35 +1499,35 @@ export class EmigoService {
     return this.identityService.getImageUrl(this.node, this.token, revision);
   } 
 
-  public getEmigoLogoUrl(emigoId: string, revision: number): string {
-    return this.indexService.getEmigoLogoUrl(this.node, this.token, emigoId, revision);
+  public getAmigoLogoUrl(amigoId: string, revision: number): string {
+    return this.indexService.getAmigoLogoUrl(this.node, this.token, amigoId, revision);
   }
 
   public getShowAssetUrl(subjectId: string, assetId: string): string {
     return this.showService.getAssetUrl(this.node, this.token, subjectId, assetId);
   }
 
-  public async getViewAssetUrl(emigoId: string, subjectId: string, assetId: string): Promise<string> {
+  public async getViewAssetUrl(amigoId: string, subjectId: string, assetId: string): Promise<string> {
 
-    let update: EmigoUpdate = await this.storeService.getEmigoUpdate(this.emigoId, emigoId);
+    let update: AmigoUpdate = await this.storeService.getAmigoUpdate(this.amigoId, amigoId);
     return await this.viewService.getAssetUrl(this.serviceNode, this.serviceToken, update.node, update.token, 
         subjectId, assetId);
   }
 
-  public async addConnection(emigo: string): Promise<ShareEntry> {
+  public async addConnection(amigo: string): Promise<ShareEntry> {
     
-    let share: ShareEntry = await this.shareService.addConnection(this.node, this.token, emigo);
+    let share: ShareEntry = await this.shareService.addConnection(this.node, this.token, amigo);
     await this.syncShare();
     return share;
   }
 
-  public async openConnection(emigo: string, share: string, node: string): Promise<string> {
+  public async openConnection(amigo: string, share: string, node: string): Promise<string> {
 
     let entry: ShareEntry = await this.shareService.updateStatus(this.node, this.token, share, "requesting", null);
     await this.syncShare();
 
     let msg: ShareMessage = await this.shareService.getMessage(this.node, this.token, share);
-    let status: ShareStatus = await this.shareService.setMessage(node, emigo, msg);
+    let status: ShareStatus = await this.shareService.setMessage(node, amigo, msg);
     if(status.shareStatus == ShareStatus.ShareStatusEnum.Connected) {
       await this.shareService.updateStatus(this.node, this.token, share, "connected", status.connected);
       await this.syncShare();
@@ -1546,13 +1546,13 @@ export class EmigoService {
     throw new Error("unexpected connection state");
   }
 
-  public async closeConnection(emigo: string, share: string, node: string): Promise<string> {
+  public async closeConnection(amigo: string, share: string, node: string): Promise<string> {
 
     let entry: ShareEntry = await this.shareService.updateStatus(this.node, this.token, share, "closing", null);
   
     try {
       let msg: ShareMessage = await this.shareService.getMessage(this.node, this.token, share);
-      let status: ShareStatus = await this.shareService.setMessage(node, emigo, msg);
+      let status: ShareStatus = await this.shareService.setMessage(node, amigo, msg);
       if(status.shareStatus == ShareStatus.ShareStatusEnum.Closed) {
         await this.shareService.updateStatus(this.node, this.token, share, "closed", null);
         await this.syncShare();
@@ -1569,134 +1569,134 @@ export class EmigoService {
     }
   }
 
-  public async removeConnection(emigo: string, share: string) {
+  public async removeConnection(amigo: string, share: string) {
 
     await this.shareService.removeConnection(this.node, this.token, share);
     await this.syncShare();
   }
 
-  public async getEmigo(emigoId: string): Promise<EmigoEntry> {
-    return await this.storeService.getEmigo(this.emigoId, emigoId);
+  public async getAmigo(amigoId: string): Promise<AmigoEntry> {
+    return await this.storeService.getAmigo(this.amigoId, amigoId);
   }
 
-  public async addEmigo(msg: EmigoMessage): Promise<EmigoEntry> {
+  public async addAmigo(msg: AmigoMessage): Promise<AmigoEntry> {
 
-    let entry: EmigoEntry = await this.indexService.addEmigo(this.node, this.token, msg);
+    let entry: AmigoEntry = await this.indexService.addAmigo(this.node, this.token, msg);
     await this.syncIndex();
     await this.syncShare();
-    let update = await this.storeService.getEmigoUpdate(this.emigoId, entry.emigoId);
-    await this.syncEmigoIdentity(update);
+    let update = await this.storeService.getAmigoUpdate(this.amigoId, entry.amigoId);
+    await this.syncAmigoIdentity(update);
     return entry;
   }
 
-  public async updateEmigoNotes(emigoId: string, notes: string): Promise<EmigoEntry> {
+  public async updateAmigoNotes(amigoId: string, notes: string): Promise<AmigoEntry> {
     
-    let entry: EmigoEntry = await this.indexService.setEmigoNotes(this.node, this.token, emigoId, notes);
+    let entry: AmigoEntry = await this.indexService.setAmigoNotes(this.node, this.token, amigoId, notes);
     await this.syncIndex();
     return entry;
   }
 
-  public async removeEmigo(emigoId: string) {
+  public async removeAmigo(amigoId: string) {
 
-    await this.indexService.removeEmigo(this.node, this.token, emigoId);
+    await this.indexService.removeAmigo(this.node, this.token, amigoId);
     await this.syncIndex();
   }
 
-  public async setEmigoLabels(emigoId: string, labelIds: string[]): Promise<EmigoEntry> {
+  public async setAmigoLabels(amigoId: string, labelIds: string[]): Promise<AmigoEntry> {
 
-    let view: EmigoEntry = await this.indexService.setEmigoLabels(this.node, this.token, emigoId, labelIds);
-    await this.syncIndex();
-    return view;
-  }
-
-  public async setEmigoLabel(emigoId: string, labelId: string): Promise<EmigoEntry> {
-
-    let view: EmigoEntry = await this.indexService.setEmigoLabel(this.node, this.token, emigoId, labelId);
+    let view: AmigoEntry = await this.indexService.setAmigoLabels(this.node, this.token, amigoId, labelIds);
     await this.syncIndex();
     return view;
   }
 
-  public async clearEmigoLabel(emigoId: string, labelId: string): Promise<EmigoEntry> {
+  public async setAmigoLabel(amigoId: string, labelId: string): Promise<AmigoEntry> {
 
-    let view: EmigoEntry = await this.indexService.clearEmigoLabel(this.node, this.token, emigoId, labelId);
+    let view: AmigoEntry = await this.indexService.setAmigoLabel(this.node, this.token, amigoId, labelId);
     await this.syncIndex();
     return view;
   }
 
-  public async getPending(shareId: string): Promise<PendingEmigo> {
-    return await this.storeService.getPending(this.emigoId, shareId);
+  public async clearAmigoLabel(amigoId: string, labelId: string): Promise<AmigoEntry> {
+
+    let view: AmigoEntry = await this.indexService.clearAmigoLabel(this.node, this.token, amigoId, labelId);
+    await this.syncIndex();
+    return view;
   }
 
-  public async clearEmigoRequest(shareId: string) {
+  public async getPending(shareId: string): Promise<PendingAmigo> {
+    return await this.storeService.getPending(this.amigoId, shareId);
+  }
+
+  public async clearAmigoRequest(shareId: string) {
 
     await this.indexService.clearRequest(this.node, this.token, shareId);
     await this.syncIndex();
   }
 
   public async setContactShareData(share: string, obj: any): Promise<void> {
-    await this.storeService.setShareData(this.emigoId, share, obj);
-    this.refreshEmigos();
+    await this.storeService.setShareData(this.amigoId, share, obj);
+    this.refreshAmigos();
   }
 
-  public async setPendingEmigoData(share: string, obj: any): Promise<void> {
-    await this.storeService.setPendingData(this.emigoId, share, obj);
+  public async setPendingAmigoData(share: string, obj: any): Promise<void> {
+    await this.storeService.setPendingData(this.amigoId, share, obj);
   }
 
-  public async setEmigoFeed(emigo: string, hidden: boolean) {
-    await this.storeService.setEmigoFeed(this.emigoId, emigo, hidden);
+  public async setAmigoFeed(amigo: string, hidden: boolean) {
+    await this.storeService.setAmigoFeed(this.amigoId, amigo, hidden);
     this.refreshContacts();
     this.refreshViewFeed();
   }
 
-  public async setContactIdentityData(emigo: string, obj: any): Promise<void> {
-    await this.storeService.setEmigoIdentityData(this.emigoId, emigo, obj);
-    this.refreshEmigos();
+  public async setContactIdentityData(amigo: string, obj: any): Promise<void> {
+    await this.storeService.setAmigoIdentityData(this.amigoId, amigo, obj);
+    this.refreshAmigos();
   }
 
-  public async getContactIdentity(emigo: string): Promise<Emigo> {
-    return await this.storeService.getEmigoIdentity(this.emigoId, emigo);
+  public async getContactIdentity(amigo: string): Promise<Amigo> {
+    return await this.storeService.getAmigoIdentity(this.amigoId, amigo);
   }
 
-  public async getContactShare(emigo: string): Promise<ShareEntry> {
-    return await this.storeService.getEmigoShare(this.emigoId, emigo);
+  public async getContactShare(amigo: string): Promise<ShareEntry> {
+    return await this.storeService.getAmigoShare(this.amigoId, amigo);
   }
 
-  public async setContactProfileData(emigo: string, obj: any): Promise<void> {
-    await this.storeService.setEmigoAttributeData(this.emigoId, emigo, obj);
-    this.refreshEmigos();
+  public async setContactProfileData(amigo: string, obj: any): Promise<void> {
+    await this.storeService.setAmigoAttributeData(this.amigoId, amigo, obj);
+    this.refreshAmigos();
   }
 
-  public async getContactProfile(emigo: string): Promise<Attribute[]> {
-    return await this.storeService.getEmigoAttributes(this.emigoId, emigo);
+  public async getContactProfile(amigo: string): Promise<Attribute[]> {
+    return await this.storeService.getAmigoAttributes(this.amigoId, amigo);
   }
 
-  public async setViewSubjectFeed(emigo: string, subject: string, hidden: boolean) {
-    await this.storeService.setViewSubjectFeed(this.emigoId, emigo, subject, hidden);
+  public async setViewSubjectFeed(amigo: string, subject: string, hidden: boolean) {
+    await this.storeService.setViewSubjectFeed(this.amigoId, amigo, subject, hidden);
     this.refreshViewFeed();
   }
 
   public async getShowFeedSubject(subjectId: string): Promise<FeedSubjectEntry> {
-    return await this.storeService.getFeedSubjectEntry(this.emigoId, subjectId);
+    return await this.storeService.getFeedSubjectEntry(this.amigoId, subjectId);
   }
 
-  public async getContact(emigoId: string): Promise<EmigoContact> {
-    return await this.storeService.getContact(this.emigoId, emigoId);
+  public async getContact(amigoId: string): Promise<AmigoContact> {
+    return await this.storeService.getContact(this.amigoId, amigoId);
   }
   
-  public async getContacts(label: string, search: string, status: string, hidden: boolean): Promise<EmigoContact[]> {
-    return await this.storeService.getContacts(this.emigoId, label, search, status, hidden);
+  public async getContacts(label: string, search: string, status: string, hidden: boolean): Promise<AmigoContact[]> {
+    return await this.storeService.getContacts(this.amigoId, label, search, status, hidden);
   }
 
   public async getShowFeed(label: string, search: string, limit: number): Promise<FeedSubjectEntry[]> {
-    return await this.storeService.getSubjectFeed(this.emigoId, label, search, limit);
+    return await this.storeService.getSubjectFeed(this.amigoId, label, search, limit);
   }
 
-  public async getViewFeed(emigo: string, label:string, search: string, limit: number): Promise<FeedSubject[]> {
-    return await this.storeService.getEmigoFeed(this.emigoId, emigo, label, search, limit);
+  public async getViewFeed(amigo: string, label:string, search: string, limit: number): Promise<FeedSubject[]> {
+    return await this.storeService.getAmigoFeed(this.amigoId, amigo, label, search, limit);
   }
 
   public async getHiddenFeed(label: string, search: string, limit: number): Promise<FeedSubject[]> {
-    return await this.storeService.getHiddenFeed(this.emigoId, label, search, limit);
+    return await this.storeService.getHiddenFeed(this.amigoId, label, search, limit);
   }
 
   private async syncChanges() {
@@ -1715,43 +1715,43 @@ export class EmigoService {
       // retrieve any stale contact
       let d: Date = new Date();
       let cur: number = Math.floor(d.getTime() / 1000);
-      let updates: EmigoUpdate[] = await this.storeService.getStaleEmigos(this.emigoId, cur - this.stale);
+      let updates: AmigoUpdate[] = await this.storeService.getStaleAmigos(this.amigoId, cur - this.stale);
 
       for(let i = 0; i < updates.length; i++) {
 
         // set updated timestamp
-        await this.storeService.setEmigoUpdateTimestamp(this.emigoId, updates[i].emigoId, cur);
+        await this.storeService.setAmigoUpdateTimestamp(this.amigoId, updates[i].amigoId, cur);
  
         // update identity
-        await this.syncEmigoIdentity(updates[i]);
+        await this.syncAmigoIdentity(updates[i]);
 
         // update attributes
-        await this.syncEmigoAttributes(updates[i]);
+        await this.syncAmigoAttributes(updates[i]);
 
         // update subjects
-        await this.syncEmigoSubjects(updates[i]);
+        await this.syncAmigoSubjects(updates[i]);
 
       }
     }
     catch(e) {
-      if(this.emigoId != null) {
+      if(this.amigoId != null) {
         console.error(e);
       }
     }
     console.log("sync changes: done");
   }
 
-  public async refreshContact(emigo: string) {
+  public async refreshContact(amigo: string) {
 
     // update profile of specified contact
     let d: Date = new Date();
     let cur: number = Math.floor(d.getTime() / 1000);
     try {
-      let update: EmigoUpdate = await this.storeService.getEmigoUpdate(this.emigoId, emigo);
-      await this.storeService.setEmigoUpdateTimestamp(this.emigoId, update.emigoId, cur);
-      await this.syncEmigoIdentity(update);
-      await this.syncEmigoAttributes(update);
-      await this.syncEmigoSubjects(update);
+      let update: AmigoUpdate = await this.storeService.getAmigoUpdate(this.amigoId, amigo);
+      await this.storeService.setAmigoUpdateTimestamp(this.amigoId, update.amigoId, cur);
+      await this.syncAmigoIdentity(update);
+      await this.syncAmigoAttributes(update);
+      await this.syncAmigoSubjects(update);
     }
     catch(err) {
       console.log(err);
@@ -1763,7 +1763,7 @@ export class EmigoService {
     // retrieve any stale contact
     let d: Date = new Date();
     let cur: number = Math.floor(d.getTime() / 1000);
-    let updates: EmigoUpdate[] = await this.storeService.getStaleEmigos(this.emigoId, cur);
+    let updates: AmigoUpdate[] = await this.storeService.getStaleAmigos(this.amigoId, cur);
 
     // sync each view
     for(let i = 0; i < updates.length; i++) {
@@ -1771,16 +1771,16 @@ export class EmigoService {
       try {
 
         // set updated timestamp
-        await this.storeService.setEmigoUpdateTimestamp(this.emigoId, updates[i].emigoId, cur);
+        await this.storeService.setAmigoUpdateTimestamp(this.amigoId, updates[i].amigoId, cur);
 
         // update identity
-        await this.syncEmigoIdentity(updates[i]);
+        await this.syncAmigoIdentity(updates[i]);
 
         // update attributes
-        await this.syncEmigoAttributes(updates[i]);
+        await this.syncAmigoAttributes(updates[i]);
 
         // update subjects
-        await this.syncEmigoSubjects(updates[i]);
+        await this.syncAmigoSubjects(updates[i]);
       }
       catch(e) {
         console.log(e);

@@ -5,9 +5,9 @@ import * as  base64 from "base-64";
 import * as utf8 from "utf8";
 var sqlite = require("nativescript-sqlite");
 
-import { Emigo } from './emigo';
-import { EmigoView } from './emigoView';
-import { EmigoEntry } from './emigoEntry';
+import { Amigo } from './amigo';
+import { AmigoView } from './amigoView';
+import { AmigoEntry } from './amigoEntry';
 import { AttributeView } from './attributeView';
 import { Attribute } from './attribute';
 import { AttributeEntry } from './attributeEntry';
@@ -16,13 +16,13 @@ import { Subject } from './subject';
 import { SubjectEntry } from './subjectEntry';
 import { LabelEntry } from './labelEntry';
 import { ShareEntry } from './shareEntry';
-import { PendingEmigo } from './pendingEmigo';
-import { PendingEmigoView } from './pendingEmigoView';
+import { PendingAmigo } from './pendingAmigo';
+import { PendingAmigoView } from './pendingAmigoView';
 import { LabelView } from './labelView';
 import { ShareView } from './shareView';
 import { Tag } from './tag';
 
-import { EmigoContact } from './emigoContact';
+import { AmigoContact } from './amigoContact';
 import { PendingContact } from './pendingContact';
 import { FeedSubject } from './feedSubject';
 import { FeedSubjectEntry } from './feedSubjectEntry';
@@ -32,8 +32,8 @@ export class IdRevision {
   revision: number;
 }
 
-export class EmigoUpdate {
-  emigoId: string;
+export class AmigoUpdate {
+  amigoId: string;
   node: string;
   registry: string;
   identityRevision: number;
@@ -95,8 +95,8 @@ export class StoreService {
     // create tables for account id
     await this.createConfigTable(id);
     await this.createLabelTable(id);
-    await this.createEmigoTable(id);
-    await this.createEmigoLabelTable(id);
+    await this.createAmigoTable(id);
+    await this.createAmigoLabelTable(id);
     await this.createPendingTable(id);
     await this.createProfileTable(id);
     await this.createProfileLabelTable(id);
@@ -135,9 +135,9 @@ export class StoreService {
     await this.database.execSQL(cmd);
   }
 
-  private async createEmigoTable(id: string) {
+  private async createAmigoTable(id: string) {
 
-    let cmd: string = "create table if not exists emigo_" + id + " (emigo_id text unique, revision integer, node text, registry text, name text, handle text, emigo text, identity_revision, attribute_revision integer, subject_revision integer, update_timestamp integer, emigo_error integer, attribute_error integer, subject_error integer, hide integer, app_identity text, app_attribute text, app_subject text, notes text, searchable text, unique(emigo_id))";
+    let cmd: string = "create table if not exists amigo_" + id + " (amigo_id text unique, revision integer, node text, registry text, name text, handle text, amigo text, identity_revision, attribute_revision integer, subject_revision integer, update_timestamp integer, amigo_error integer, attribute_error integer, subject_error integer, hide integer, app_identity text, app_attribute text, app_subject text, notes text, searchable text, unique(amigo_id))";
     await this.database.execSQL(cmd);
   }
 
@@ -147,9 +147,9 @@ export class StoreService {
     await this.database.execSQL(cmd);
   }
 
-  private async createEmigoLabelTable(id: string) {
+  private async createAmigoLabelTable(id: string) {
 
-    let cmd: string = "create table if not exists emigolabel_" + id + " (label_id text, emigo_id text, unique (label_id, emigo_id))";
+    let cmd: string = "create table if not exists amigolabel_" + id + " (label_id text, amigo_id text, unique (label_id, amigo_id))";
     await this.database.execSQL(cmd);
   }
 
@@ -167,7 +167,7 @@ export class StoreService {
 
   private async createContactTable(id: string) {
   
-    let cmd: string = "create table if not exists contact_" + id + " (emigo_id text, attribute_id text, revision integer, schema text, data text, unique(emigo_id, attribute_id))";
+    let cmd: string = "create table if not exists contact_" + id + " (amigo_id text, attribute_id text, revision integer, schema text, data text, unique(amigo_id, attribute_id))";
     await this.database.execSQL(cmd);
   }
 
@@ -185,13 +185,13 @@ export class StoreService {
 
   private async createViewTable(id: string) {
     
-    let cmd: string = "create table if not exists view_" + id + " (emigo_id text, subject_id text, revision integer, tag_revision integer, created integer, modified integer, expires integer, schema text, data text, tags text, tag_count integer, hide integer, app_subject text, searchable text, unique(emigo_id, subject_id))";
+    let cmd: string = "create table if not exists view_" + id + " (amigo_id text, subject_id text, revision integer, tag_revision integer, created integer, modified integer, expires integer, schema text, data text, tags text, tag_count integer, hide integer, app_subject text, searchable text, unique(amigo_id, subject_id))";
     await this.database.execSQL(cmd);
   }
 
   private async createShareTable(id: string) {
   
-    let cmd: string = "create table if not exists share_" + id + " (emigo_id text, share_id text, revision integer, status text, token text, updated integer, app_share text, unique(emigo_id), unique(share_id))"
+    let cmd: string = "create table if not exists share_" + id + " (amigo_id text, share_id text, revision integer, status text, token text, updated integer, app_share text, unique(amigo_id), unique(share_id))"
     await this.database.execSQL(cmd);
   }
 
@@ -343,12 +343,12 @@ export class StoreService {
 
   public async getConnections(id: string): Promise<ShareEntry[]> {
   
-    let cmd: string = "select emigo_id, share_id, revision, status, token, updated from share_" + id;
+    let cmd: string = "select amigo_id, share_id, revision, status, token, updated from share_" + id;
     let rows = await this.database.all(cmd);
     let shares: ShareEntry[] = [];
     for(let i = 0; i < rows.length; i++) {
       shares.push({
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         shareId: rows[i][1],
         revision: rows[i][2],
         status: rows[i][3],
@@ -375,13 +375,13 @@ export class StoreService {
 
   public async addConnection(id: string, entry: ShareEntry) {
 
-    let cmd: string = "insert or ignore into share_" + id + " (emigo_id, share_id, revision, status, token, updated) values ('" + entry.emigoId + "', '" + entry.shareId + "', " + entry.revision + ", '" + entry.status + "', '" + entry.token + "', " + entry.updated + ")";
+    let cmd: string = "insert or ignore into share_" + id + " (amigo_id, share_id, revision, status, token, updated) values ('" + entry.amigoId + "', '" + entry.shareId + "', " + entry.revision + ", '" + entry.status + "', '" + entry.token + "', " + entry.updated + ")";
     await this.database.execSQL(cmd);
   }
 
   public async updateConnection(id: string, entry: ShareEntry) {
 
-    let cmd: string = "update share_" + id + " set emigo_id='" + entry.emigoId + "', revision=" + entry.revision + ", status='" + entry.status + "', token='" + entry.token + "', updated=" + entry.updated + " where share_id='" + entry.shareId + "'";
+    let cmd: string = "update share_" + id + " set amigo_id='" + entry.amigoId + "', revision=" + entry.revision + ", status='" + entry.status + "', token='" + entry.token + "', updated=" + entry.updated + " where share_id='" + entry.shareId + "'";
     await this.database.execSQL(cmd);
   }
 
@@ -394,10 +394,10 @@ export class StoreService {
 
   // index module synchronization
 
-  public async getEmigo(id: string, emigoId: string): Promise<EmigoEntry> {
+  public async getAmigo(id: string, amigoId: string): Promise<AmigoEntry> {
 
     // get labels
-    let label: string = "select label_id from emigolabel_" + id + " where emigo_id='" + emigoId + "'";
+    let label: string = "select label_id from amigolabel_" + id + " where amigo_id='" + amigoId + "'";
     let labelRows = await this.database.all(label);
     let labels: string[] = [];
     for(let i = 0; i < labelRows.length; i++) {
@@ -405,25 +405,25 @@ export class StoreService {
     }
 
     // get notes and revision  
-    let entry: string = "select emigo_id, revision, notes from emigo_" + id + " where emigo_id='" + emigoId + "'";
+    let entry: string = "select amigo_id, revision, notes from amigo_" + id + " where amigo_id='" + amigoId + "'";
     let rows = await this.database.all(entry);
-    let emigo: EmigoEntry = null;
+    let amigo: AmigoEntry = null;
     for(let i = 0; i < rows.length; i++) {
-      emigo = {
-        emigoId: rows[i][0],
+      amigo = {
+        amigoId: rows[i][0],
         revision: rows[i][1],
         notes: this.decodeText(rows[i][2]),
         labels: labels,
       };
     }
 
-    return emigo;
+    return amigo;
   }
 
-  public async getEmigos(id: string): Promise<EmigoEntry[]> {
+  public async getAmigos(id: string): Promise<AmigoEntry[]> {
 
     // get labels 
-    let label: string = "select emigo_id, label_id from emigolabel_" + id;
+    let label: string = "select amigo_id, label_id from amigolabel_" + id;
     let labelRows = await this.database.all(label);
     let views: Map<string, string[]> = new Map<string, string[]>();
     for(let i = 0; i < labelRows.length; i++) {
@@ -436,75 +436,75 @@ export class StoreService {
     }
  
     // get notes and revision
-    let entry: string = "select emigo_id, revision, notes from emigo_" + id;
+    let entry: string = "select amigo_id, revision, notes from amigo_" + id;
     let rows = await this.database.all(entry);
-    let emigos: EmigoEntry[] = [];
+    let amigos: AmigoEntry[] = [];
     for(let i = 0; i < rows.length; i++) {
-      emigos.push({
-        emigoId: rows[i][0],
+      amigos.push({
+        amigoId: rows[i][0],
         revision: rows[i][1],
         notes: this.decodeText(rows[i][2]),
         labels: views.has(rows[i][0]) ? views.get(rows[i][0]) : [],
       });
     }
-    return emigos;
+    return amigos;
   }
 
-  public async getEmigoViews(id: string): Promise<EmigoView[]> {
+  public async getAmigoViews(id: string): Promise<AmigoView[]> {
 
-    let cmd: string = "select emigo_id, revision from emigo_" + id;
+    let cmd: string = "select amigo_id, revision from amigo_" + id;
     let rows = await this.database.all(cmd);
-    let revisions: EmigoView[] = [];
+    let revisions: AmigoView[] = [];
     for(let i = 0; i < rows.length; i++) {
       revisions.push({
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         revision: rows[i][1]
       });
     }
     return revisions;
   }
 
-  public async addEmigo(id: string, emigoId: string, notes: string, revision: number) {
+  public async addAmigo(id: string, amigoId: string, notes: string, revision: number) {
 
-    let cmd: string = "insert or ignore into emigo_" + id + " (emigo_id, revision, hide, notes) values ('" + emigoId + "', " + revision + ", 0, " + this.encodeText(notes) + ")";
+    let cmd: string = "insert or ignore into amigo_" + id + " (amigo_id, revision, hide, notes) values ('" + amigoId + "', " + revision + ", 0, " + this.encodeText(notes) + ")";
     await this.database.execSQL(cmd);
   }
 
-  public async updateEmigo(id: string, emigoId: string, notes: string, revision: number) {
+  public async updateAmigo(id: string, amigoId: string, notes: string, revision: number) {
 
-    let cmd: string = "update emigo_" + id + " set revision=" + revision + ", notes=" + this.encodeText(notes) + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set revision=" + revision + ", notes=" + this.encodeText(notes) + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async removeEmigo(id: string, emigoId: string) {
+  public async removeAmigo(id: string, amigoId: string) {
 
     // commercial sqlite will allow for this to be a transaction    
 
-    let cmd: string = "delete from emigo_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "delete from amigo_" + id + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
 
-    let label: string = "delete from emigolabel_" + id + " where emigo_id='" + emigoId + "'";
+    let label: string = "delete from amigolabel_" + id + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(label);
 
-    let share: string = "delete from share_" + id + " where emigo_id='" + emigoId + "'"
+    let share: string = "delete from share_" + id + " where amigo_id='" + amigoId + "'"
     await this.database.execSQL(share);
 
-    let contact: string = "delete from contact_" + id + " where emigo_id='" +  emigoId + "'";
+    let contact: string = "delete from contact_" + id + " where amigo_id='" +  amigoId + "'";
     await this.database.execSQL(contact);
 
-    let view: string = "delete from view_" + id + " where emigo_id='" + emigoId + "'";
+    let view: string = "delete from view_" + id + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(view);
   }
 
-  public async setEmigoLabel(id: string, emigoId: string, labelId: string) {
+  public async setAmigoLabel(id: string, amigoId: string, labelId: string) {
 
-    let cmd: string = "insert or ignore into emigolabel_" + id + " (emigo_id, label_id) values ('" + emigoId + "', '" + labelId + "')";
+    let cmd: string = "insert or ignore into amigolabel_" + id + " (amigo_id, label_id) values ('" + amigoId + "', '" + labelId + "')";
     await this.database.execSQL(cmd);
   }
 
-  public async clearEmigoLabels(id: string, emigoId) {
+  public async clearAmigoLabels(id: string, amigoId) {
 
-    let cmd: string = "delete from emigolabel_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "delete from amigolabel_" + id + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
@@ -512,58 +512,58 @@ export class StoreService {
     
     let cmd: string = "select share_id, revision, updated, app_share from pending_" + id + " order by updated";
     let rows = await this.database.all(cmd);
-    let emigos: PendingContact[] = [];
+    let amigos: PendingContact[] = [];
     for(let i = 0; i < rows.length; i++) {
-      emigos.push({
+      amigos.push({
         shareId: rows[i][0],
         revision: rows[i][1],
         updated: rows[i][2],
         pendingData: this.decodeObject(rows[i][3]),
       });
     }
-    return emigos;
+    return amigos;
   }
 
-  public async getPendingViews(id: string): Promise<PendingEmigoView[]> {
+  public async getPendingViews(id: string): Promise<PendingAmigoView[]> {
     
     let cmd: string = "select share_id, revision from pending_" + id;
     let rows = await this.database.all(cmd);
-    let shares: PendingEmigoView[] = [];
+    let shares: PendingAmigoView[] = [];
     for(let i = 0; i < rows.length; i++) {
       shares.push({ shareId: rows[i][0], revision: rows[i][1] });
     }
     return shares;
   }
 
-  public async getPending(id: string, shareId: string): Promise<PendingEmigo> {
+  public async getPending(id: string, shareId: string): Promise<PendingAmigo> {
     
     let cmd: string = "select share_id, revision, message, updated from pending_" + id + " where share_id='" + shareId + "'";
     let rows = await this.database.all(cmd);
-    let emigo: PendingEmigo = null;
+    let amigo: PendingAmigo = null;
     for(let i = 0; i < rows.length; i++) {
-      emigo = {
+      amigo = {
         shareId: rows[i][0],
         revision: rows[i][1],
         message: this.decodeObject(rows[i][2]),
         updated: rows[i][3],
       };
     }
-    return emigo;
+    return amigo;
   }
 
-  public async addPending(id: string, emigo: PendingEmigo) {
+  public async addPending(id: string, amigo: PendingAmigo) {
   
-    let cmd: string = "insert or ignore into pending_" + id + " (share_id, message, revision, updated) values ('" + emigo.shareId + "', " + this.encodeObject(emigo.message) + ", " + emigo.revision + ", " + emigo.updated + ")";
+    let cmd: string = "insert or ignore into pending_" + id + " (share_id, message, revision, updated) values ('" + amigo.shareId + "', " + this.encodeObject(amigo.message) + ", " + amigo.revision + ", " + amigo.updated + ")";
     await this.database.execSQL(cmd);
   }
 
-  public async updatePending(id: string, shareId: string, emigo: PendingEmigo) {
+  public async updatePending(id: string, shareId: string, amigo: PendingAmigo) {
 
-    if(shareId != emigo.shareId) {
+    if(shareId != amigo.shareId) {
       throw new Error("unexpected request share id");
     }
 
-    let cmd: string = "update pending_" + id + " message=" + this.encodeObject(emigo.message) + ", revision=" + emigo.revision + ", updated=" + emigo.updated + " where share_id='" + emigo.shareId + "')";
+    let cmd: string = "update pending_" + id + " message=" + this.encodeObject(amigo.message) + ", revision=" + amigo.revision + ", updated=" + amigo.updated + " where share_id='" + amigo.shareId + "')";
     await this.database.execSQL(cmd);
   }
 
@@ -806,7 +806,7 @@ export class StoreService {
     }
   }
 
-  public async updateEmigoSubjectTags(id: string, emigoId: string, subjectId: string, revision: number, tags: Tag[]) {
+  public async updateAmigoSubjectTags(id: string, amigoId: string, subjectId: string, revision: number, tags: Tag[]) {
 
     let count: number;
     if(tags == null) {
@@ -817,7 +817,7 @@ export class StoreService {
     }
     
     let t: string = this.encodeObject(tags);
-    let cmd: string = "update view_" + id + " set tag_revision=" + revision + ", tag_count=" + count + ", tags=" + t + " where emigo_id='" + emigoId + "' and subject_id='" + subjectId + "'";
+    let cmd: string = "update view_" + id + " set tag_revision=" + revision + ", tag_count=" + count + ", tags=" + t + " where amigo_id='" + amigoId + "' and subject_id='" + subjectId + "'";
     await this.database.execSQL(cmd);
   }
 
@@ -837,9 +837,9 @@ export class StoreService {
     await this.database.execSQL(cmd);
   }
 
-  public async getEmigoSubjectTags(id: string, emigoId: string, subjectId: string): Promise<Tag[]> {
+  public async getAmigoSubjectTags(id: string, amigoId: string, subjectId: string): Promise<Tag[]> {
 
-    let cmd: string = "select tags from view_" + id + " where emigo_id='" + emigoId + "' and subject_id='" + subjectId + "'";
+    let cmd: string = "select tags from view_" + id + " where amigo_id='" + amigoId + "' and subject_id='" + subjectId + "'";
     let rows = await this.database.all(cmd);
     let tags = [];
     for(let i = 0; i < rows.length; i++) {
@@ -885,14 +885,14 @@ export class StoreService {
   
   // contact synchronization
 
-  public async getEmigoUpdate(id: string, emigo: string): Promise<EmigoUpdate> {
+  public async getAmigoUpdate(id: string, amigo: string): Promise<AmigoUpdate> {
 
-    let cmd: string = "select emigo_" + id + ".emigo_id, node, registry, emigo_" + id + ".identity_revision, attribute_revision, subject_revision, status, token from emigo_" + id + " left outer join share_" + id + " on emigo_" + id + ".emigo_id = share_" + id + ".emigo_id where emigo_" + id + ".emigo_id='" + emigo + "'";
+    let cmd: string = "select amigo_" + id + ".amigo_id, node, registry, amigo_" + id + ".identity_revision, attribute_revision, subject_revision, status, token from amigo_" + id + " left outer join share_" + id + " on amigo_" + id + ".amigo_id = share_" + id + ".amigo_id where amigo_" + id + ".amigo_id='" + amigo + "'";
     let rows = await this.database.all(cmd);
-    let update: EmigoUpdate = null;
+    let update: AmigoUpdate = null;
     for(let i = 0; i < rows.length; i++) {
       update = {
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         node: rows[i][1],
         registry: rows[i][2],
         identityRevision: rows[i][3],
@@ -905,14 +905,14 @@ export class StoreService {
     return update;
   }
 
-  public async getEmigoUpdates(id: string): Promise<EmigoUpdate[]> {
+  public async getAmigoUpdates(id: string): Promise<AmigoUpdate[]> {
 
-    let cmd: string = "select emigo_" + id + ".emigo_id, node, registry, emigo_" + id + ".identity_revision, attribute_revision, subject_revision, status, token from emigo_" + id + " left outer join share_" + id + " on emigo_" + id + ".emigo_id = share_" + id + ".emigo_id";
+    let cmd: string = "select amigo_" + id + ".amigo_id, node, registry, amigo_" + id + ".identity_revision, attribute_revision, subject_revision, status, token from amigo_" + id + " left outer join share_" + id + " on amigo_" + id + ".amigo_id = share_" + id + ".amigo_id";
     let rows = await this.database.all(cmd);
-    let updates: EmigoUpdate[] = [];
+    let updates: AmigoUpdate[] = [];
     for(let i = 0; i < rows.length; i++) {
       updates.push({
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         node: rows[i][1],
         registry: rows[i][2],
         identityRevision: rows[i][3],
@@ -925,15 +925,15 @@ export class StoreService {
     return updates;
   }
 
-  public async getStaleEmigos(id: string, stale: number): Promise<EmigoUpdate[]> {
+  public async getStaleAmigos(id: string, stale: number): Promise<AmigoUpdate[]> {
 
-    let cmd: string = "select emigo_" + id + ".emigo_id, node, registry, emigo_" + id + ".revision, attribute_revision, subject_revision, status, token from emigo_" + id + " left outer join share_" + id + " on emigo_" + id + ".emigo_id = share_" + id + ".emigo_id where update_timestamp is null or update_timestamp < " + stale + " order by update_timestamp asc";
+    let cmd: string = "select amigo_" + id + ".amigo_id, node, registry, amigo_" + id + ".revision, attribute_revision, subject_revision, status, token from amigo_" + id + " left outer join share_" + id + " on amigo_" + id + ".amigo_id = share_" + id + ".amigo_id where update_timestamp is null or update_timestamp < " + stale + " order by update_timestamp asc";
 
     let rows = await this.database.all(cmd);
-    let updates: EmigoUpdate[] = [];
+    let updates: AmigoUpdate[] = [];
     for(let i = 0; i < rows.length; i++) {
       updates.push({
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         node: rows[i][1],
         registry: rows[i][2],
         identityRevision: rows[i][3],
@@ -946,62 +946,62 @@ export class StoreService {
     return updates;
   }
 
-  public async getEmigoIdentity(id: string, emigoId: string): Promise<Emigo> {
+  public async getAmigoIdentity(id: string, amigoId: string): Promise<Amigo> {
     
-    let cmd: string = "select emigo from emigo_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "select amigo from amigo_" + id + " where amigo_id='" + amigoId + "'";
     let rows = await this.database.all(cmd);
-    let emigo: Emigo = null;
+    let amigo: Amigo = null;
     for(let i = 0; i < rows.length; i++) {
-      emigo = this.decodeObject(rows[i][0]);
+      amigo = this.decodeObject(rows[i][0]);
     }
-    return emigo;
+    return amigo;
   }  
 
-  public async setEmigoIdentity(id: string, emigoId: string, emigo: Emigo, searchableEmigo: any) {
+  public async setAmigoIdentity(id: string, amigoId: string, amigo: Amigo, searchableAmigo: any) {
 
     let search: string = "";
-    if(searchableEmigo != null) {
-      search = searchableEmigo(emigo);
+    if(searchableAmigo != null) {
+      search = searchableAmigo(amigo);
     }
 
     // sanity check
-    if(emigo.emigoId == null || emigo.emigoId != emigoId) {
-      throw new Error("invalid emigo id");
+    if(amigo.amigoId == null || amigo.amigoId != amigoId) {
+      throw new Error("invalid amigo id");
     }    
 
     let u: string = "null";
-    if(emigo != null && emigo.name != null) {
-      u = "'" + emigo.name.replace(/["',]/g, " ") + "'";
+    if(amigo != null && amigo.name != null) {
+      u = "'" + amigo.name.replace(/["',]/g, " ") + "'";
     }
     let h: string = "null";
-    if(emigo != null && emigo.handle != null) {
-      h = "'" + emigo.handle.replace(/["',]/g, " ") + "'";
+    if(amigo != null && amigo.handle != null) {
+      h = "'" + amigo.handle.replace(/["',]/g, " ") + "'";
     }
     let v: string = "null";
-    if(emigo != null && emigo.revision != null) {
-      v = emigo.revision.toString();
+    if(amigo != null && amigo.revision != null) {
+      v = amigo.revision.toString();
     }
     let n: string = "null";
-    if(emigo != null && emigo.node != null) {
-      n = "'" + emigo.node.replace(/["',]/g, " ") + "'";
+    if(amigo != null && amigo.node != null) {
+      n = "'" + amigo.node.replace(/["',]/g, " ") + "'";
     }
     let r: string = "null";
-    if(emigo != null && emigo.registry != null) {
-      r = "'" + emigo.registry.replace(/["',]/g, " ") + "'";
+    if(amigo != null && amigo.registry != null) {
+      r = "'" + amigo.registry.replace(/["',]/g, " ") + "'";
     }
 
-    let cmd: string = "update emigo_" + id + " set identity_revision=" + v + ", node=" + n + ", registry=" + r + ", name=" + u + ", handle=" + h + ", searchable='" + search + "', emigo=" + this.encodeObject(emigo) + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set identity_revision=" + v + ", node=" + n + ", registry=" + r + ", name=" + u + ", handle=" + h + ", searchable='" + search + "', amigo=" + this.encodeObject(amigo) + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async getEmigoShare(id: string, emigoId: string): Promise<ShareEntry> {
+  public async getAmigoShare(id: string, amigoId: string): Promise<ShareEntry> {
 
-    let cmd: string = "select emigo_id, share_id, revision, status, token, updated from share_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "select amigo_id, share_id, revision, status, token, updated from share_" + id + " where amigo_id='" + amigoId + "'";
     let rows = await this.database.all(cmd);
     let share: ShareEntry = null;
     for(let i = 0; i < rows.length; i++) {
       share = {
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         shareId: rows[i][1],
         revision: rows[i][2],
         status: rows[i][3],
@@ -1012,9 +1012,9 @@ export class StoreService {
     return share;
   }
 
-  public async getEmigoAttributes(id: string, emigoId: string): Promise<Attribute[]> {
+  public async getAmigoAttributes(id: string, amigoId: string): Promise<Attribute[]> {
   
-    let cmd: string = "select attribute_id, revision, schema, data from contact_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "select attribute_id, revision, schema, data from contact_" + id + " where amigo_id='" + amigoId + "'";
     let rows = await this.database.all(cmd);
     let attributes: Attribute[] = [];
     for(let i = 0; i < rows.length; i++) {
@@ -1028,9 +1028,9 @@ export class StoreService {
     return attributes;
   }
 
-  public async getEmigoAttributeViews(id: string, emigoId: string): Promise<AttributeView[]> {
+  public async getAmigoAttributeViews(id: string, amigoId: string): Promise<AttributeView[]> {
     
-    let cmd: string = "select attribute_id, revision from contact_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "select attribute_id, revision from contact_" + id + " where amigo_id='" + amigoId + "'";
     let rows = await this.database.all(cmd);
     let revisions: AttributeView[] = [];
     for(let i = 0; i < rows.length; i++) {
@@ -1042,25 +1042,25 @@ export class StoreService {
     return revisions;
   }
 
-  public async addEmigoAttribute(id: string, emigoId: string, entry: Attribute) {
+  public async addAmigoAttribute(id: string, amigoId: string, entry: Attribute) {
 
-    let cmd: string = "insert or ignore into contact_" + id + " (emigo_id, attribute_id, revision, schema, data) values ('" + emigoId + "', '" + entry.attributeId + "', " + entry.revision + ", '" + entry.schema + "', " + this.encodeText(entry.data) + ")";
+    let cmd: string = "insert or ignore into contact_" + id + " (amigo_id, attribute_id, revision, schema, data) values ('" + amigoId + "', '" + entry.attributeId + "', " + entry.revision + ", '" + entry.schema + "', " + this.encodeText(entry.data) + ")";
     await this.database.execSQL(cmd);
   }
 
-  public async updateEmigoAttribute(id: string, emigoId: string, entry: Attribute) {
+  public async updateAmigoAttribute(id: string, amigoId: string, entry: Attribute) {
 
-    let cmd: string = "update contact_" + id + " set revision=" + entry.revision + ", schema='" + entry.schema + "', data=" + this.encodeText(entry.data) + " where emigo_id='" + emigoId + "' and attribute_id='" + entry.attributeId + "'";
+    let cmd: string = "update contact_" + id + " set revision=" + entry.revision + ", schema='" + entry.schema + "', data=" + this.encodeText(entry.data) + " where amigo_id='" + amigoId + "' and attribute_id='" + entry.attributeId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async removeEmigoAttribute(id: string, emigoId: string, attributeId: string) {
+  public async removeAmigoAttribute(id: string, amigoId: string, attributeId: string) {
 
-    let cmd: string = "delete from contact_" + id + " where emigo_id='" + emigoId + "' and attribute_id='" + attributeId + "'";
+    let cmd: string = "delete from contact_" + id + " where amigo_id='" + amigoId + "' and attribute_id='" + attributeId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async setEmigoAttributeRevision(id: string, emigoId: string, revision: number) {
+  public async setAmigoAttributeRevision(id: string, amigoId: string, revision: number) {
 
     let r: string;
     if(revision == null) {
@@ -1070,13 +1070,13 @@ export class StoreService {
       r = revision.toString();
     }
 
-    let cmd: string = "update emigo_" + id + " set attribute_revision=" + r + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set attribute_revision=" + r + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async getEmigoSubject(id: string, emigoId: string, subjectId: string): Promise<Subject> {
+  public async getAmigoSubject(id: string, amigoId: string, subjectId: string): Promise<Subject> {
 
-    let cmd: string = "select subject_id, revision, created, modified, expires, schema, data from contact_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "select subject_id, revision, created, modified, expires, schema, data from contact_" + id + " where amigo_id='" + amigoId + "'";
     let rows = await this.database.all(cmd);
     let subject: Subject = null;
     for(let i = 0; i < rows.length; i++) {
@@ -1093,9 +1093,9 @@ export class StoreService {
     return subject;
   }
 
-  public async getEmigoSubjects(id: string, emigoId: string): Promise<Subject[]> {
+  public async getAmigoSubjects(id: string, amigoId: string): Promise<Subject[]> {
 
-    let cmd: string = "select subject_id, revision, created, modified, expires, schema, data from contact_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "select subject_id, revision, created, modified, expires, schema, data from contact_" + id + " where amigo_id='" + amigoId + "'";
     let rows = await this.database.all(cmd);
     let subjects: Subject[] = [];
     for(let i = 0; i < rows.length; i++) {
@@ -1112,9 +1112,9 @@ export class StoreService {
     return subjects;
   }
 
-  public async getEmigoSubjectViews(id: string, emigoId: string): Promise<SubjectView[]> {
+  public async getAmigoSubjectViews(id: string, amigoId: string): Promise<SubjectView[]> {
 
-    let cmd: string = "select subject_id, revision, tag_revision from view_" + id + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "select subject_id, revision, tag_revision from view_" + id + " where amigo_id='" + amigoId + "'";
     let rows = await this.database.all(cmd);
     let revisions: SubjectView[] = [];
     for(let i = 0; i < rows.length; i++) {
@@ -1127,35 +1127,35 @@ export class StoreService {
     return revisions;
   }
 
-  public async addEmigoSubject(id: string, emigoId: string, entry: Subject, searchable: any) {
+  public async addAmigoSubject(id: string, amigoId: string, entry: Subject, searchable: any) {
 
     let search: string = "";
     if(entry != null && searchable != null) {
       search = searchable(entry).replace(/["',]/g, " ");
     }
  
-    let cmd: string = "insert or ignore into view_" + id + " (emigo_id, subject_id, revision, created, modified, expires, schema, searchable, data, hide, tag_revision, tag_count) values ('" + emigoId + "', '" + entry.subjectId + "', " + entry.revision + ", " + entry.created + ", " + entry.modified + ", " + entry.expires + ", '" + entry.schema + "', '" + search + "', " + this.encodeText(entry.data) + ", 0, 0, 0)";
+    let cmd: string = "insert or ignore into view_" + id + " (amigo_id, subject_id, revision, created, modified, expires, schema, searchable, data, hide, tag_revision, tag_count) values ('" + amigoId + "', '" + entry.subjectId + "', " + entry.revision + ", " + entry.created + ", " + entry.modified + ", " + entry.expires + ", '" + entry.schema + "', '" + search + "', " + this.encodeText(entry.data) + ", 0, 0, 0)";
     await this.database.execSQL(cmd);
   }
 
-  public async updateEmigoSubject(id: string, emigoId: string, entry: Subject, searchable: any) {
+  public async updateAmigoSubject(id: string, amigoId: string, entry: Subject, searchable: any) {
 
     let search: string = "";
     if(entry != null && searchable != null) {
       search = searchable(entry).replace(/["',]/g, " ");
     }
  
-    let cmd: string = "update view_" + id + " set revision=" + entry.revision + ", created=" + entry.created + ", modified=" + entry.modified + ", expires=" + entry.expires + ", schema='" + entry.schema + "', searchable='" + search + "', data=" + this.encodeText(entry.data) + " where emigo_id='" + emigoId + "' and subject_id='" + entry.subjectId + "'";
+    let cmd: string = "update view_" + id + " set revision=" + entry.revision + ", created=" + entry.created + ", modified=" + entry.modified + ", expires=" + entry.expires + ", schema='" + entry.schema + "', searchable='" + search + "', data=" + this.encodeText(entry.data) + " where amigo_id='" + amigoId + "' and subject_id='" + entry.subjectId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async removeEmigoSubject(id: string, emigoId: string, subjectId: string) {
+  public async removeAmigoSubject(id: string, amigoId: string, subjectId: string) {
 
-    let cmd: string = "delete from view_" + id + " where emigo_id='" + emigoId + "' and subject_id='" + subjectId + "'";
+    let cmd: string = "delete from view_" + id + " where amigo_id='" + amigoId + "' and subject_id='" + subjectId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async setEmigoSubjectRevision(id: string, emigoId: string, revision: number) {
+  public async setAmigoSubjectRevision(id: string, amigoId: string, revision: number) {
 
     let r: string;
     if(revision == null) {
@@ -1165,27 +1165,27 @@ export class StoreService {
       r = revision.toString();
     }
 
-    let cmd: string = "update emigo_" + id + " set subject_revision=" + r + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set subject_revision=" + r + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async setEmigoUpdateTimestamp(id: string, emigoId: string, timestamp: number) {
+  public async setAmigoUpdateTimestamp(id: string, amigoId: string, timestamp: number) {
 
-    let cmd: string = "update emigo_" + id + " set update_timestamp=" + timestamp + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set update_timestamp=" + timestamp + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
 
   // app customizations
 
-  public async setEmigoFeed(id: string, emigoId: string, hide: boolean) {
+  public async setAmigoFeed(id: string, amigoId: string, hide: boolean) {
 
     let h: number = hide ? 1 : 0;
-    let cmd: string = "update emigo_" + id + " set hide=" + h + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set hide=" + h + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd); 
   }
 
-  public async setEmigoIdentitySearchable(id: string, emigoId: string, str: string) {
+  public async setAmigoIdentitySearchable(id: string, amigoId: string, str: string) {
   
     let s: string;
     if(str == null) {
@@ -1195,13 +1195,13 @@ export class StoreService {
       s = "'" + str.replace(/["',]/g, " ") + "'";
     }
     
-    let cmd: string = "update emigo_" + id + " set searchable=" + s + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set searchable=" + s + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async setEmigoIdentityData(id: string, emigoId: string, obj: any) {
+  public async setAmigoIdentityData(id: string, amigoId: string, obj: any) {
 
-    let cmd: string = "update emigo_" + id + " set app_identity=" + this.encodeObject(obj) + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set app_identity=" + this.encodeObject(obj) + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
@@ -1217,15 +1217,15 @@ export class StoreService {
     await this.database.execSQL(cmd);
   }
 
-  public async setEmigoAttributeData(id: string, emigoId: string, obj: any) {
+  public async setAmigoAttributeData(id: string, amigoId: string, obj: any) {
 
-    let cmd: string = "update emigo_" + id + " set app_attribute=" + this.encodeObject(obj) + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set app_attribute=" + this.encodeObject(obj) + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async setEmigoSubjectData(id: string, emigoId: string, obj: any) {
+  public async setAmigoSubjectData(id: string, amigoId: string, obj: any) {
 
-    let cmd: string = "update emigo_" + id + " set app_subject=" + this.encodeObject(obj) + " where emigo_id='" + emigoId + "'";
+    let cmd: string = "update amigo_" + id + " set app_subject=" + this.encodeObject(obj) + " where amigo_id='" + amigoId + "'";
     await this.database.execSQL(cmd);
   }
 
@@ -1248,20 +1248,20 @@ export class StoreService {
     let cmd: string = "update view_" + id + " set searchable=" + s + " where subject_id='" + subjectId + "'";
   }
 
-  public async setViewSubjectFeed(id: string, emigoId: string, subjectId: string, hide: boolean) {
+  public async setViewSubjectFeed(id: string, amigoId: string, subjectId: string, hide: boolean) {
 
     let h: number = hide ? 1 : 0;
-    let cmd: string = "update view_" + id + " set hide=" + h + " where emigo_id='" + emigoId + "' and subject_id='" + subjectId + "'";
+    let cmd: string = "update view_" + id + " set hide=" + h + " where amigo_id='" + amigoId + "' and subject_id='" + subjectId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async setViewSubjectData(id: string, emigoId: string, subjectId: string, obj: any) {
+  public async setViewSubjectData(id: string, amigoId: string, subjectId: string, obj: any) {
 
-    let cmd: string = "update view_" + id + " set app_subject=" + this.encodeObject(obj) + " where emigo_id='" + emigoId + "' and subject_id='" + subjectId + "'";
+    let cmd: string = "update view_" + id + " set app_subject=" + this.encodeObject(obj) + " where amigo_id='" + amigoId + "' and subject_id='" + subjectId + "'";
     await this.database.execSQL(cmd);
   }
 
-  public async setViewSubjectSearchable(id: string, emigoId: string, subjectId: string, str: string) {
+  public async setViewSubjectSearchable(id: string, amigoId: string, subjectId: string, str: string) {
 
     let s: string;
     if(str == null) {
@@ -1271,13 +1271,13 @@ export class StoreService {
       s = "'" + str.replace(/["',]/g, " ") + "'";
     } 
 
-    let cmd: string = "update view_" + id + " set searchable=" + s + " where emigo_id='" + emigoId + "' and subject_id='" + subjectId + "'";
+    let cmd: string = "update view_" + id + " set searchable=" + s + " where amigo_id='" + amigoId + "' and subject_id='" + subjectId + "'";
   }
 
 
   // aggregate entities
 
-  public async getContacts(id: string, label: string, search: string, status: string, hidden: boolean): Promise<EmigoContact[]> {
+  public async getContacts(id: string, label: string, search: string, status: string, hidden: boolean): Promise<AmigoContact[]> {
 
     let s: string;
     if(search == null) {
@@ -1308,51 +1308,51 @@ export class StoreService {
     let cmd: string;
 
     if(c == null && label == null && s == null && hidden == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id order by name asc"
     }
     if(c == null && label == null && s == null && hidden != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id" + " where hide = " + (hidden ? "1" : "0") + " order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id" + " where hide = " + (hidden ? "1" : "0") + " order by name asc"
     }
     if(c == null && label != null && label != "" && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " inner join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + "' and searchable like " + s + h + " group by emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " inner join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + "' and searchable like " + s + h + " group by amigo_" + id + ".amigo_id order by name asc"
     }
     if(c == null && label != null && label == "" && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id is null and searchable like " + s + h + " group by emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id is null and searchable like " + s + h + " group by amigo_" + id + ".amigo_id order by name asc"
     }
     if(c == null && label == null && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where searchable like " + s + h + " order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where searchable like " + s + h + " order by name asc"
     }
     if(c == null && label != null && label != "" && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " inner join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + h + "' group by emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " inner join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + h + "' group by amigo_" + id + ".amigo_id order by name asc"
     }
     if(c == null && label != null && label == "" && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id is null" + h + " group by emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id is null" + h + " group by amigo_" + id + ".amigo_id order by name asc"
     }
 
     if(c != null && label == null && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where status=" + c + h + " order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where status=" + c + h + " order by name asc"
     }
     if(c != null && label != null && label != "" && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " inner join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + "' and status=" + c + " and searchable like " + s + h + " group by emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " inner join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + "' and status=" + c + " and searchable like " + s + h + " group by amigo_" + id + ".amigo_id order by name asc"
     }
     if(c != null && label != null && label == "" && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id is null and and status=" + c + " and searchable like " + s + h + " group by emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id is null and and status=" + c + " and searchable like " + s + h + " group by amigo_" + id + ".amigo_id order by name asc"
     }
     if(c != null && label == null && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where status=" + c + " and searchable like " + s + h + " order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where status=" + c + " and searchable like " + s + h + " order by name asc"
     }
     if(c != null && label != null && label != "" && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " inner join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where status=" + c + " and label_id='" + label + h + "' group by emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " inner join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where status=" + c + " and label_id='" + label + h + "' group by amigo_" + id + ".amigo_id order by name asc"
     }
     if(c != null && label != null && label == "" && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where status=" + c + h + " and label_id is null group by emigo_" + id + ".emigo_id order by name asc"
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where status=" + c + h + " and label_id is null group by amigo_" + id + ".amigo_id order by name asc"
     }
 
     let rows = await this.database.all(cmd);
-    let contacts: EmigoContact[] = [];
+    let contacts: AmigoContact[] = [];
     for(let i = 0; i < rows.length; i++) {
       contacts.push({
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         name: rows[i][1],
         handle: rows[i][2],
         node: rows[i][3],
@@ -1373,15 +1373,15 @@ export class StoreService {
     return contacts;
   }
 
-  public async getContact(id: string, emigoId: string): Promise<EmigoContact> {
+  public async getContact(id: string, amigoId: string): Promise<AmigoContact> {
 
-    let cmd: string = "select emigo_" + id + ".emigo_id, name, handle, node, registry, emigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from emigo_" + id + " left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where emigo_" + id + ".emigo_id='" + emigoId + "'";
+    let cmd: string = "select amigo_" + id + ".amigo_id, name, handle, node, registry, amigo_" + id + ".identity_revision, attribute_revision, app_identity, app_attribute, status, hide, share_id, share_" + id + ".revision, app_share, share_" + id + ".updated from amigo_" + id + " left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where amigo_" + id + ".amigo_id='" + amigoId + "'";
  
     let rows = await this.database.all(cmd);
-    let contact: EmigoContact = null;
+    let contact: AmigoContact = null;
     for(let i = 0; i < rows.length; i++) {
       contact = {
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         name: rows[i][1],
         handle: rows[i][2],
         node: rows[i][3],
@@ -1505,23 +1505,23 @@ export class StoreService {
 
     let cmd: string;
     if(label == null && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where view_" + id + ".hide=1 order by modified" + l;
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where view_" + id + ".hide=1 order by modified" + l;
     }
     if(label == null && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where view_" + id + ".searchable like " + s + " and view_" + id + ".hide=1 order by modified" + l;
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where view_" + id + ".searchable like " + s + " and view_" + id + ".hide=1 order by modified" + l;
     }
     if(label != null && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + "' and view_" + id + ".hide=1 order by modified" + l;
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + "' and view_" + id + ".hide=1 order by modified" + l;
     }
     if(label != null && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + "' and view_" + id + ".searchable like " + s + " and view_" + id + ".hide=1 order by modified" + l;
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + "' and view_" + id + ".searchable like " + s + " and view_" + id + ".hide=1 order by modified" + l;
     }
 
     let rows = await this.database.all(cmd);
     let subjects: FeedSubject[] = [];
     for(let i = 0; i < rows.length; i++) {
       subjects.push({
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         name: rows[i][1],
         handle: rows[i][2],
         registry: rows[i][3],
@@ -1543,7 +1543,7 @@ export class StoreService {
     return subjects;
   }
 
-  public async getEmigoFeed(id: string, emigo: string, label: string, search: string, limit: number): Promise<FeedSubject[]> {
+  public async getAmigoFeed(id: string, amigo: string, label: string, search: string, limit: number): Promise<FeedSubject[]> {
 
     let s: string;
     if(search == null) {
@@ -1559,36 +1559,36 @@ export class StoreService {
     }
 
     let cmd: string;
-    if(emigo == null && label == null && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where view_" + id + ".hide=0 and emigo_" + id + ".hide=0 order by modified desc" + l;
+    if(amigo == null && label == null && s == null) {
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where view_" + id + ".hide=0 and amigo_" + id + ".hide=0 order by modified desc" + l;
     }
-    if(emigo == null && label == null && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where view_" + id + ".searchable like " + s + " and view_" + id + ".hide=0 and emigo_" + id + ".hide=0 order by modified desc" + l;
+    if(amigo == null && label == null && s != null) {
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where view_" + id + ".searchable like " + s + " and view_" + id + ".hide=0 and amigo_" + id + ".hide=0 order by modified desc" + l;
     }
-    if(emigo == null && label != null && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + "' and view_" + id + ".hide=0 and emigo_" + id + ".hide=0 order by modified desc" + l;
+    if(amigo == null && label != null && s == null) {
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + "' and view_" + id + ".hide=0 and amigo_" + id + ".hide=0 order by modified desc" + l;
     }
-    if(emigo == null && label != null && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + "' and view_" + id + ".searchable like " + s + " and view_" + id + ".hide=0 and emigo_" + id + ".hide=0 order by modified desc" + l;
+    if(amigo == null && label != null && s != null) {
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + "' and view_" + id + ".searchable like " + s + " and view_" + id + ".hide=0 and amigo_" + id + ".hide=0 order by modified desc" + l;
     }
-    if(emigo != null && label == null && s == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where emigo_" + id + ".emigo_id='" + emigo + "' and view_" + id + ".hide=0 and emigo_" + id + ".hide=0 order by modified desc" + l;
+    if(amigo != null && label == null && s == null) {
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where amigo_" + id + ".amigo_id='" + amigo + "' and view_" + id + ".hide=0 and amigo_" + id + ".hide=0 order by modified desc" + l;
     }
-    if(emigo != null && label == null && s != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where emigo_" + id + ".emigo_id='" + emigo + "' and view_" + id + ".searchable like " + s + " and view_" + id + ".hide=0 emigo_" + id + ".hide=0 order by modified desc" + l;
+    if(amigo != null && label == null && s != null) {
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where amigo_" + id + ".amigo_id='" + amigo + "' and view_" + id + ".searchable like " + s + " and view_" + id + ".hide=0 amigo_" + id + ".hide=0 order by modified desc" + l;
     }
-    if(emigo != null && label != null && search == null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + "' and emigo_" + id + ".emigo_id = '" + emigo + "' and view_" + id + ".hide=0 and emigo_" + id + ".hide=0 order by modified desc" + l;
+    if(amigo != null && label != null && search == null) {
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + "' and amigo_" + id + ".amigo_id = '" + amigo + "' and view_" + id + ".hide=0 and amigo_" + id + ".hide=0 order by modified desc" + l;
     }
-    if(emigo != null && label != null && search != null) {
-      cmd = "select emigo_" + id + ".emigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, emigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join emigo_" + id + " on view_" + id + ".emigo_id = emigo_" + id + ".emigo_id left outer join emigolabel_" + id + " on emigo_" + id + ".emigo_id = emigolabel_" + id + ".emigo_id left outer join share_" + id + " on share_" + id + ".emigo_id = emigo_" + id + ".emigo_id where label_id='" + label + "' and emigo_" + id + ".emigo_id = '" + emigo + "' and view_" + id + ".searchable like " + s + " and view_" + id + ".hide=0 and emigo_" + id + ".hide=0 order by modified desc" + l;
+    if(amigo != null && label != null && search != null) {
+      cmd = "select amigo_" + id + ".amigo_id, name, handle, registry, node, share_" + id + ".token, view_" + id + ".subject_id, view_" + id + ".revision, created, modified, expires, schema, data, amigo_" + id + ".identity_revision, app_identity, view_" + id + ".app_subject, tag_count from view_" + id + " inner join amigo_" + id + " on view_" + id + ".amigo_id = amigo_" + id + ".amigo_id left outer join amigolabel_" + id + " on amigo_" + id + ".amigo_id = amigolabel_" + id + ".amigo_id left outer join share_" + id + " on share_" + id + ".amigo_id = amigo_" + id + ".amigo_id where label_id='" + label + "' and amigo_" + id + ".amigo_id = '" + amigo + "' and view_" + id + ".searchable like " + s + " and view_" + id + ".hide=0 and amigo_" + id + ".hide=0 order by modified desc" + l;
     }
 
     let rows = await this.database.all(cmd);
     let subjects: FeedSubject[] = [];
     for(let i = 0; i < rows.length; i++) {
       subjects.push({
-        emigoId: rows[i][0],
+        amigoId: rows[i][0],
         name: rows[i][1],
         handle: rows[i][2],
         registry: rows[i][3],

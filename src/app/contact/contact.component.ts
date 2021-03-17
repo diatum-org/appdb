@@ -6,7 +6,7 @@ import { RouterExtensions } from "@nativescript/angular";
 import * as  base64 from "base-64";
 import * as utf8 from "utf8";
 
-import { EmigoService } from '../lib/emigo.service';
+import { AmigoService } from '../lib/amigo.service';
 import { AccessService } from '../lib/access.service';
 import { RegistryService } from '../lib/registry.service';
 import { IdentityService } from '../lib/identity.service';
@@ -21,21 +21,21 @@ import { ShareEntry } from '../lib/shareEntry';
 import { ShareStatus } from '../lib/shareStatus';
 import { ShareMessage } from '../lib/shareMessage';
 
-import { Emigo } from '../lib/emigo';
+import { Amigo } from '../lib/amigo';
 import { Attribute } from '../lib/attribute';
 import { AttributeEntry } from '../lib/attributeEntry';
 import { LabelEntry } from '../lib/labelEntry';
 import { ServiceAccess } from '../lib/serviceAccess';
-import { getEmigoObject } from '../lib/emigo.util';
+import { getAmigoObject } from '../lib/amigo.util';
 import { AttributeView } from '../lib/attributeView';
-import { EmigoMessage } from '../lib/emigoMessage';
-import { EmigoEntry } from '../lib/emigoEntry';
-import { PendingEmigo } from '../lib/pendingEmigo';
+import { AmigoMessage } from '../lib/amigoMessage';
+import { AmigoEntry } from '../lib/amigoEntry';
+import { PendingAmigo } from '../lib/pendingAmigo';
 import { PendingContact } from '../lib/pendingContact';
-import { PendingEmigoView } from '../lib/pendingEmigoView';
+import { PendingAmigoView } from '../lib/pendingAmigoView';
 
 class User {
-  emigoId: string;
+  amigoId: string;
   accountNode: string;
   accountToken: string;
   registry: string;
@@ -69,7 +69,7 @@ export class ContactComponent implements OnInit, OnDestroy {
       private groupService: GroupService,
       private profileService: ProfileService,
       private viewService: ViewService,
-      private emigoService: EmigoService) {
+      private amigoService: AmigoService) {
   }
 
   ngOnInit(): void {
@@ -92,13 +92,13 @@ export class ContactComponent implements OnInit, OnDestroy {
 
   async onTest() {
 
-    this.emigoService.clearEmigo();
+    this.amigoService.clearAmigo();
     this.contactService.clearAuth();
     this.viewService.clearAuth();
     
     await this.runTest();
     
-    this.emigoService.clearEmigo();
+    this.amigoService.clearAmigo();
     this.contactService.clearAuth();
     this.viewService.clearAuth();
   }
@@ -122,17 +122,17 @@ export class ContactComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log("ACCOUNT: " + this.act.emigoId);
-    console.log("CONTACT0: " + this.contact[0].emigoId);
-    console.log("CONTACT1: " + this.contact[1].emigoId);
+    console.log("ACCOUNT: " + this.act.amigoId);
+    console.log("CONTACT0: " + this.contact[0].amigoId);
+    console.log("CONTACT1: " + this.contact[1].amigoId);
   
     // load account
     try {
       console.log("setting account");
-      let c = await this.emigoService.init("test007.db");
-      await this.emigoService.setAppContext({ "emigoId": this.act.emigoId, "registry": this.act.registry, 
+      let c = await this.amigoService.init("test007.db");
+      await this.amigoService.setAppContext({ "amigoId": this.act.amigoId, "registry": this.act.registry, 
           "token": this.act.accountToken, "serviceNode": this.act.appNode, "serviceToken": this.act.appToken });
-      let a = await this.emigoService.setEmigo(this.act.emigoId, this.act.registry, this.act.accountToken, 
+      let a = await this.amigoService.setAmigo(this.act.amigoId, this.act.registry, this.act.accountToken, 
           this.act.appNode, this.act.appToken, [ "0101" ], [ "2020" ], null, e => {}, s => {}, 5, 2);
       console.log(a);
       console.log("setting account: done");
@@ -146,7 +146,7 @@ export class ContactComponent implements OnInit, OnDestroy {
     // add label
     try {
       console.log("set labels");
-      let l: LabelEntry = await this.emigoService.addLabel("bff");
+      let l: LabelEntry = await this.amigoService.addLabel("bff");
       this.labelId = l.labelId;
       console.log("set labels: done"); 
     }
@@ -161,13 +161,13 @@ export class ContactComponent implements OnInit, OnDestroy {
       console.log("set attribute");
       let a: AttributeEntry;
       let v: AttributeView;
-      a = await this.emigoService.addAttribute("0101", "data1");
+      a = await this.amigoService.addAttribute("0101", "data1");
       this.attributeId = a.attribute.attributeId;
-      await this.emigoService.addAttribute("0101", "data2");
-      await this.emigoService.addAttribute("0101", "data3");
+      await this.amigoService.addAttribute("0101", "data2");
+      await this.amigoService.addAttribute("0101", "data3");
       console.log(a);
       console.log("set label:");
-      a = await this.emigoService.setAttributeLabel(this.attributeId, this.labelId);
+      a = await this.amigoService.setAttributeLabel(this.attributeId, this.labelId);
       console.log(a);
     }
     catch(e) {
@@ -179,34 +179,34 @@ export class ContactComponent implements OnInit, OnDestroy {
     // request connection
     try {
       console.log("requesting connection");
-      let msg: EmigoMessage = await this.registryService.getMessage(this.contact[0].registry, this.contact[0].emigoId);
-      let emigo: EmigoEntry = await this.emigoService.addEmigo(msg);
-      let share: ShareEntry = await this.emigoService.addConnection(this.contact[0].emigoId);
-      let status: string = await this.emigoService.openConnection(this.contact[0].emigoId, share.shareId, this.node);
+      let msg: AmigoMessage = await this.registryService.getMessage(this.contact[0].registry, this.contact[0].amigoId);
+      let amigo: AmigoEntry = await this.amigoService.addAmigo(msg);
+      let share: ShareEntry = await this.amigoService.addConnection(this.contact[0].amigoId);
+      let status: string = await this.amigoService.openConnection(this.contact[0].amigoId, share.shareId, this.node);
 
       let tok: string = this.contact[0].accountToken;
-      let pending: PendingEmigoView[] = await this.indexService.getPendingRequests(this.node, tok);
+      let pending: PendingAmigoView[] = await this.indexService.getPendingRequests(this.node, tok);
 
-      let request: PendingEmigo = await this.indexService.getPendingRequest(this.node, tok, pending[0].shareId);
-      let entry: EmigoEntry = await this.indexService.addEmigo(this.node, tok, request.message);
-      let connection: ShareEntry = await this.shareService.addConnection(this.node, tok, entry.emigoId);
+      let request: PendingAmigo = await this.indexService.getPendingRequest(this.node, tok, pending[0].shareId);
+      let entry: AmigoEntry = await this.indexService.addAmigo(this.node, tok, request.message);
+      let connection: ShareEntry = await this.shareService.addConnection(this.node, tok, entry.amigoId);
       await this.shareService.updateStatus(this.node, tok, connection.shareId, "requesting", null);
       let message: ShareMessage = await this.shareService.getMessage(this.node, tok, connection.shareId);
-      let issue: ShareStatus = await this.shareService.setMessage(this.node, this.act.emigoId, message);
+      let issue: ShareStatus = await this.shareService.setMessage(this.node, this.act.amigoId, message);
       await this.shareService.updateStatus(this.node, tok, connection.shareId, "connected", issue.connected);
       let label: LabelEntry = await this.groupService.addLabel(this.node, tok, "LABLER");
       let bad: AttributeEntry = await this.profileService.addAttribute(this.node, tok, "1010", "bad stuff");
       await this.profileService.setAttributeLabel(this.node, tok, bad.attribute.attributeId, label.labelId);
-      await this.indexService.setEmigoLabel(this.node, tok, entry.emigoId, label.labelId);
+      await this.indexService.setAmigoLabel(this.node, tok, entry.amigoId, label.labelId);
       let good: AttributeEntry = await this.profileService.addAttribute(this.node, tok, "0101", "good stuff");
       await this.profileService.setAttributeLabel(this.node, tok, good.attribute.attributeId, label.labelId);
-      await this.indexService.setEmigoLabel(this.node, tok, entry.emigoId, label.labelId);
+      await this.indexService.setAmigoLabel(this.node, tok, entry.amigoId, label.labelId);
 
       // should have profile within 10 seconds
       let profile: Attribute[];
       for(let i = 0; i < 5; i++) {
         await this.timeout(2);
-        profile = await this.emigoService.getContactProfile(emigo.emigoId);
+        profile = await this.amigoService.getContactProfile(amigo.amigoId);
         if(profile.length == 1) {
           break;
         }
@@ -225,15 +225,15 @@ export class ContactComponent implements OnInit, OnDestroy {
     try {
       console.log("accepting connection");
       let tok: string = this.contact[1].accountToken;
-      let msg: EmigoMessage = await this.registryService.getMessage(this.act.registry, this.act.emigoId);
-      let entry: EmigoEntry = await this.indexService.addEmigo(this.node, tok, msg);
-      let connection: ShareEntry = await this.shareService.addConnection(this.node, tok, entry.emigoId);
+      let msg: AmigoMessage = await this.registryService.getMessage(this.act.registry, this.act.amigoId);
+      let entry: AmigoEntry = await this.indexService.addAmigo(this.node, tok, msg);
+      let connection: ShareEntry = await this.shareService.addConnection(this.node, tok, entry.amigoId);
       await this.shareService.updateStatus(this.node, tok, connection.shareId, "requesting", null);
       let message: ShareMessage = await this.shareService.getMessage(this.node, tok, connection.shareId);
-      let issue: ShareStatus = await this.shareService.setMessage(this.node, this.act.emigoId, message);
+      let issue: ShareStatus = await this.shareService.setMessage(this.node, this.act.amigoId, message);
 
       let contacts: PendingContact[] = [];
-      this.emigoService.pendingContacts.subscribe(e => {
+      this.amigoService.pendingContacts.subscribe(e => {
         contacts = e;    
       });
       for(let i = 0; i < 5; i++) {
@@ -243,26 +243,26 @@ export class ContactComponent implements OnInit, OnDestroy {
         }
       }
       if(contacts.length != 1) {
-        throw new Error("invalid contacts emigos");
+        throw new Error("invalid contacts amigos");
       }
-      let pending: PendingEmigo = await this.emigoService.getPending(contacts[0].shareId);
-      let emigo: EmigoEntry = await this.emigoService.addEmigo(pending.message);
-      let share: ShareEntry = await this.emigoService.addConnection(emigo.emigoId);
-      let status: string = await this.emigoService.openConnection(emigo.emigoId, share.shareId, this.node);
+      let pending: PendingAmigo = await this.amigoService.getPending(contacts[0].shareId);
+      let amigo: AmigoEntry = await this.amigoService.addAmigo(pending.message);
+      let share: ShareEntry = await this.amigoService.addConnection(amigo.amigoId);
+      let status: string = await this.amigoService.openConnection(amigo.amigoId, share.shareId, this.node);
 
       let label: LabelEntry = await this.groupService.addLabel(this.node, tok, "LABLER");
       let bad: AttributeEntry = await this.profileService.addAttribute(this.node, tok, "1010", "bad stuff2");
       await this.profileService.setAttributeLabel(this.node, tok, bad.attribute.attributeId, label.labelId);
-      await this.indexService.setEmigoLabel(this.node, tok, entry.emigoId, label.labelId);
+      await this.indexService.setAmigoLabel(this.node, tok, entry.amigoId, label.labelId);
       let good: AttributeEntry = await this.profileService.addAttribute(this.node, tok, "0101", "good stuff2");
       await this.profileService.setAttributeLabel(this.node, tok, good.attribute.attributeId, label.labelId);
-      await this.indexService.setEmigoLabel(this.node, tok, entry.emigoId, label.labelId);
+      await this.indexService.setAmigoLabel(this.node, tok, entry.amigoId, label.labelId);
 
       // should have profile within 10 seconds
       let profile: Attribute[];
       for(let i = 0; i < 5; i++) {
         await this.timeout(2);
-        profile = await this.emigoService.getContactProfile(emigo.emigoId);
+        profile = await this.amigoService.getContactProfile(amigo.amigoId);
         if(profile.length == 1) {
           break;
         }
@@ -281,12 +281,12 @@ export class ContactComponent implements OnInit, OnDestroy {
     // share double labeled attribute with 0 but not 1
     try {
       console.log("sharing profile");
-      let label: LabelEntry = await this.emigoService.addLabel("friend");
-      let attr: AttributeEntry = await this.emigoService.addAttribute("0101", "coffee");
-      await this.emigoService.setAttributeLabel(attr.attribute.attributeId, label.labelId);
-      await this.emigoService.setAttributeLabel(attr.attribute.attributeId, this.labelId);
-      await this.emigoService.setEmigoLabel(this.contact[0].emigoId, label.labelId);
-      await this.emigoService.setEmigoLabel(this.contact[0].emigoId, this.labelId);
+      let label: LabelEntry = await this.amigoService.addLabel("friend");
+      let attr: AttributeEntry = await this.amigoService.addAttribute("0101", "coffee");
+      await this.amigoService.setAttributeLabel(attr.attribute.attributeId, label.labelId);
+      await this.amigoService.setAttributeLabel(attr.attribute.attributeId, this.labelId);
+      await this.amigoService.setAmigoLabel(this.contact[0].amigoId, label.labelId);
+      await this.amigoService.setAmigoLabel(this.contact[0].amigoId, this.labelId);
     }
     catch(e) {
       console.log("sharing profile failed");
@@ -295,7 +295,7 @@ export class ContactComponent implements OnInit, OnDestroy {
     }
 
     // reset services
-    this.emigoService.clearEmigo();
+    this.amigoService.clearAmigo();
 
     // check shared attributes
     try {
@@ -349,12 +349,12 @@ export class ContactComponent implements OnInit, OnDestroy {
     let app = await this.accessService.createAccount(this.node, this.token);
     let token: any = JSON.parse(utf8.decode(base64.decode(app.token)));
     let msg = await this.accessService.authorizeAccount(this.node, token.token, access);
-    let emigo = await this.accessService.createUser(this.node, this.token, msg);
-    let usr = await this.accessService.assignUser(this.node, token.token, emigo)
+    let amigo = await this.accessService.createUser(this.node, this.token, msg);
+    let usr = await this.accessService.assignUser(this.node, token.token, amigo)
     let m = await this.identityService.setRegistry(this.node, usr.accountToken, this.registry);
     await this.registryService.setMessage(this.registry, m);
 
-    return { "emigoId": usr.emigoId, "accountNode": this.node, "accountToken": usr.accountToken, "registry": this.registry,
+    return { "amigoId": usr.amigoId, "accountNode": this.node, "accountToken": usr.accountToken, "registry": this.registry,
         "appNode": this.node, "appToken": usr.serviceToken };
   }
 

@@ -1,5 +1,5 @@
-export class EmigoContact {
-  emigoId: string;
+export class AmigoContact {
+  amigoId: string;
   name: string;
   handle: string;
   node: string;

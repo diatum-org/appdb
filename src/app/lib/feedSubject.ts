@@ -1,5 +1,5 @@
 export class FeedSubject {
-  emigoId: string;
+  amigoId: string;
   name: string;
   handle: string
   registry: string;

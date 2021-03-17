@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams, HttpResponse, HttpEvent } from '@angular/common/http';
 import { HttpUrlEncodingCodec } from '@angular/common/http';
 
-import { EmigoMessage } from './emigoMessage';
+import { AmigoMessage } from './amigoMessage';
 import { Result } from './result';
 
 @Injectable()
@@ -15,15 +15,15 @@ export class RegistryService {
     this.headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Accept': 'application/json' });
   }
 
-  public getRevision(url: string, emigoId: string): Promise<number> {
-    return this.httpClient.get<number>(url + "/emigo/messages/revision?emigoId=" + emigoId,
+  public getRevision(url: string, amigoId: string): Promise<number> {
+    return this.httpClient.get<number>(url + "/amigo/messages/revision?amigoId=" + amigoId,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setMessage(url: string, msg: EmigoMessage): Promise<void> {
+  public setMessage(url: string, msg: AmigoMessage): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      // deliver emigo message
-      this.httpClient.post<void>(url + "/emigo/messages",
+      // deliver amigo message
+      this.httpClient.post<void>(url + "/amigo/messages",
           msg, { headers: this.headers, observe: 'body' }).toPromise().then(() => {
         resolve();
       }).catch(err => {
@@ -33,22 +33,22 @@ export class RegistryService {
     });
   }
 
-  public getEmigoId(url: string, handle: string): Promise<string> {
+  public getAmigoId(url: string, handle: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      this.httpClient.get(url + "/emigo/id?handle=" + handle, { headers: this.headers, observe: 'body', responseType: 'text' }).toPromise().then(r => {
+      this.httpClient.get(url + "/amigo/id?handle=" + handle, { headers: this.headers, observe: 'body', responseType: 'text' }).toPromise().then(r => {
         resolve(r);
       }).catch(err => {
-        console.log("RegistryService.getEmigoId failed");
+        console.log("RegistryService.getAmigoId failed");
         reject();
       });
     });
   }
 
-  public checkHandle(url: string, handle: string, emigoId: string = null): Promise<boolean> {
+  public checkHandle(url: string, handle: string, amigoId: string = null): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
 
-      if(emigoId != null) {
-        this.httpClient.get<Result>(url + "/emigo/status?handle=" + encodeURI(handle) + "&emigoId=" + emigoId,
+      if(amigoId != null) {
+        this.httpClient.get<Result>(url + "/amigo/status?handle=" + encodeURI(handle) + "&amigoId=" + amigoId,
             { headers: this.headers, observe: 'body', responseType: 'json' }).toPromise().then(r => {
           resolve(r.boolValue);
         }).catch(err => {
@@ -57,7 +57,7 @@ export class RegistryService {
         });
       }
       else {
-        this.httpClient.get<Result>(url + "/emigo/status?handle=" + encodeURI(handle),
+        this.httpClient.get<Result>(url + "/amigo/status?handle=" + encodeURI(handle),
             { headers: this.headers, observe: 'body', responseType: 'json' }).toPromise().then(r => {
           resolve(r.boolValue);
         }).catch(err => {
@@ -68,17 +68,17 @@ export class RegistryService {
     });
   }
 
-  public getLogoUrl(url: string, emigoId: string, revision: number): string {
-    return url + "/emigo/messages/logo?emigoId=" + emigoId + "&revision=" + revision;
+  public getLogoUrl(url: string, amigoId: string, revision: number): string {
+    return url + "/amigo/messages/logo?amigoId=" + amigoId + "&revision=" + revision;
   }
 
-  public getMessage(url: string, emigoId: string): Promise<EmigoMessage> {
-    return this.httpClient.get<EmigoMessage>(url + "/emigo/messages/?emigoId=" + emigoId,
+  public getMessage(url: string, amigoId: string): Promise<AmigoMessage> {
+    return this.httpClient.get<AmigoMessage>(url + "/amigo/messages/?amigoId=" + amigoId,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getIdentity(url: string, handle: string): Promise<EmigoMessage> {
-    return this.httpClient.get<EmigoMessage>(url + "/emigo/messages/?handle=" + handle,
+  public getIdentity(url: string, handle: string): Promise<AmigoMessage> {
+    return this.httpClient.get<AmigoMessage>(url + "/amigo/messages/?handle=" + handle,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 }

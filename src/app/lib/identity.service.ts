@@ -6,8 +6,8 @@ import { HttpUrlEncodingCodec } from '@angular/common/http';
 import * as  base64 from "base-64";
 import * as utf8 from "utf8";
 
-import { EmigoMessage } from './emigoMessage';
-import { Emigo } from './emigo';
+import { AmigoMessage } from './amigoMessage';
+import { Amigo } from './amigo';
 
 @Injectable()
 export class IdentityService {
@@ -23,23 +23,23 @@ export class IdentityService {
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getEmigo(url: string, token: string): Promise<Emigo> {
-    return this.httpClient.get<Emigo>(url + "/identity?token=" + token,
+  public getAmigo(url: string, token: string): Promise<Amigo> {
+    return this.httpClient.get<Amigo>(url + "/identity?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getMessage(url: string, token: string): Promise<EmigoMessage> {
-    return this.httpClient.get<EmigoMessage>(url + "/identity/message?token=" + token,
+  public getMessage(url: string, token: string): Promise<AmigoMessage> {
+    return this.httpClient.get<AmigoMessage>(url + "/identity/message?token=" + token,
           { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setRegistry(url: string, token: string, data: string): Promise<EmigoMessage> {
-    return this.httpClient.put<EmigoMessage>(url + "/identity/registry?token=" + token,
+  public setRegistry(url: string, token: string, data: string): Promise<AmigoMessage> {
+    return this.httpClient.put<AmigoMessage>(url + "/identity/registry?token=" + token,
         data, { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setImage(url: string, token: string, data: string): Promise<EmigoMessage> {
-    return this.httpClient.put<EmigoMessage>(url + "/identity/image?token=" + token, 
+  public setImage(url: string, token: string, data: string): Promise<AmigoMessage> {
+    return this.httpClient.put<AmigoMessage>(url + "/identity/image?token=" + token, 
         data, { headers: this.headers, observe: 'body' }).toPromise();
   }
 
@@ -47,23 +47,23 @@ export class IdentityService {
     return url + "/identity/image?token=" + token + "&revision=" + revision;
   }
 
-  public setName(url: string, token: string, data: string): Promise<EmigoMessage> {
-    return this.httpClient.put<EmigoMessage>(url + "/identity/name?token=" + token, 
+  public setName(url: string, token: string, data: string): Promise<AmigoMessage> {
+    return this.httpClient.put<AmigoMessage>(url + "/identity/name?token=" + token, 
         data, { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setHandle(url: string, token: string, data: string): Promise<EmigoMessage> {
-    return this.httpClient.put<EmigoMessage>(url + "/identity/handle?token=" + token, 
+  public setHandle(url: string, token: string, data: string): Promise<AmigoMessage> {
+    return this.httpClient.put<AmigoMessage>(url + "/identity/handle?token=" + token, 
         data, { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setLocation(url: string, token: string, data: string): Promise<EmigoMessage> {
-    return this.httpClient.put<EmigoMessage>(url + "/identity/location?token=" + token, 
+  public setLocation(url: string, token: string, data: string): Promise<AmigoMessage> {
+    return this.httpClient.put<AmigoMessage>(url + "/identity/location?token=" + token, 
         data, { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setDescription(url: string, token: string, data: string): Promise<EmigoMessage> {
-    return this.httpClient.put<EmigoMessage>(url + "/identity/description?token=" + token, 
+  public setDescription(url: string, token: string, data: string): Promise<AmigoMessage> {
+    return this.httpClient.put<AmigoMessage>(url + "/identity/description?token=" + token, 
         data, { headers: this.headers, observe: 'body' }).toPromise();
   }
 

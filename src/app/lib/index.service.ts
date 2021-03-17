@@ -3,12 +3,12 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams, HttpResponse, HttpEvent } from '@angular/common/http';
 import { HttpUrlEncodingCodec } from '@angular/common/http';
 
-import { Emigo } from './emigo';
-import { EmigoEntry } from './emigoEntry';
-import { EmigoView } from './emigoView';
-import { EmigoMessage } from './emigoMessage';
-import { PendingEmigo } from './pendingEmigo';
-import { PendingEmigoView } from './pendingEmigoView';
+import { Amigo } from './amigo';
+import { AmigoEntry } from './amigoEntry';
+import { AmigoView } from './amigoView';
+import { AmigoMessage } from './amigoMessage';
+import { PendingAmigo } from './pendingAmigo';
+import { PendingAmigoView } from './pendingAmigoView';
 import { ShareMessage } from './shareMessage';
 
 @Injectable()
@@ -25,83 +25,83 @@ export class IndexService {
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getEmigoRevision(url: string, token: string, emigoId: string): Promise<number> {
-    return this.httpClient.get<number>(url + "/index/emigos/" + emigoId + "/revision?token=" + token,
+  public getAmigoRevision(url: string, token: string, amigoId: string): Promise<number> {
+    return this.httpClient.get<number>(url + "/index/amigos/" + amigoId + "/revision?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getEmigoIdentity(url: string, token: string, emigoId: string): Promise<Emigo> {
-    return this.httpClient.get<Emigo>(url + "/index/emigos/" + emigoId + "/identity?token=" + token,
+  public getAmigoIdentity(url: string, token: string, amigoId: string): Promise<Amigo> {
+    return this.httpClient.get<Amigo>(url + "/index/amigos/" + amigoId + "/identity?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getEmigo(url: string, token: string, emigoId: string): Promise<EmigoEntry> {
-    return this.httpClient.get<EmigoEntry>(url + "/index/emigos/" + emigoId + "?token=" + token,
+  public getAmigo(url: string, token: string, amigoId: string): Promise<AmigoEntry> {
+    return this.httpClient.get<AmigoEntry>(url + "/index/amigos/" + amigoId + "?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getEmigos(url: string, token: string): Promise<EmigoEntry[]> {
-    return this.httpClient.get<EmigoEntry[]>(url + "/index/emigos?token=" + token,
+  public getAmigos(url: string, token: string): Promise<AmigoEntry[]> {
+    return this.httpClient.get<AmigoEntry[]>(url + "/index/amigos?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getEmigoViews(url: string, token: string): Promise<EmigoView[]> {
-    return this.httpClient.get<EmigoView[]>(url + "/index/emigos/view?token=" + token,
+  public getAmigoViews(url: string, token: string): Promise<AmigoView[]> {
+    return this.httpClient.get<AmigoView[]>(url + "/index/amigos/view?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setEmigo(url: string, token: string, e: EmigoMessage): Promise<Emigo> {
-    return this.httpClient.put<Emigo>(url + "/index/emigos?token=" + token,
+  public setAmigo(url: string, token: string, e: AmigoMessage): Promise<Amigo> {
+    return this.httpClient.put<Amigo>(url + "/index/amigos?token=" + token,
         e, { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getPendingRequests(url: string, token: string): Promise<PendingEmigoView[]> {
-    return this.httpClient.get<PendingEmigoView[]>(url + "/index/requests?token=" + token,
+  public getPendingRequests(url: string, token: string): Promise<PendingAmigoView[]> {
+    return this.httpClient.get<PendingAmigoView[]>(url + "/index/requests?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getPendingRequest(url: string, token: string, shareId: string): Promise<PendingEmigo> {
-    return this.httpClient.get<PendingEmigo>(url + "/index/requests/" + shareId + "?token=" + token,
+  public getPendingRequest(url: string, token: string, shareId: string): Promise<PendingAmigo> {
+    return this.httpClient.get<PendingAmigo>(url + "/index/requests/" + shareId + "?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public addEmigo(url: string, token: string, e: EmigoMessage): Promise<EmigoEntry> {
-    return this.httpClient.post<EmigoEntry>(url + "/index/emigos?token=" + token,
+  public addAmigo(url: string, token: string, e: AmigoMessage): Promise<AmigoEntry> {
+    return this.httpClient.post<AmigoEntry>(url + "/index/amigos?token=" + token,
         e, { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public removeEmigo(url: string, token: string, emigoId: string): Promise<void> {
-    return this.httpClient.delete<void>(url + "/index/emigos/" + emigoId + "?token=" + token,
+  public removeAmigo(url: string, token: string, amigoId: string): Promise<void> {
+    return this.httpClient.delete<void>(url + "/index/amigos/" + amigoId + "?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getEmigoLogoUrl(url: string, token: string, emigoId: string, revision: number): string {
-    return url + "/index/emigos/" + emigoId + "/logo?token=" + token + "&revision=" + revision;
+  public getAmigoLogoUrl(url: string, token: string, amigoId: string, revision: number): string {
+    return url + "/index/amigos/" + amigoId + "/logo?token=" + token + "&revision=" + revision;
   }
 
-  public setEmigoNotes(url: string, token: string, emigoId: string, notes: string): Promise<EmigoEntry> {
+  public setAmigoNotes(url: string, token: string, amigoId: string, notes: string): Promise<AmigoEntry> {
     if(notes == null) {
-      return this.httpClient.delete<EmigoEntry>(url + "/index/emigos/" + emigoId + "/notes?token=" + token, 
+      return this.httpClient.delete<AmigoEntry>(url + "/index/amigos/" + amigoId + "/notes?token=" + token, 
           { headers: this.headers, observe: 'body' }).toPromise();
     }
     else {
-      return this.httpClient.put<EmigoEntry>(url + "/index/emigos/" + emigoId + "/notes?token=" + token, 
+      return this.httpClient.put<AmigoEntry>(url + "/index/amigos/" + amigoId + "/notes?token=" + token, 
           notes, { headers: this.headers, observe: 'body' }).toPromise();
     }
   }
 
-  public setEmigoLabels(url: string, token: string, emigoId: string, labelIds: string[]): Promise<EmigoEntry> {
-    return this.httpClient.put<EmigoEntry>(url + "/index/emigos/" + emigoId + "/labels" + "?token=" + token, 
+  public setAmigoLabels(url: string, token: string, amigoId: string, labelIds: string[]): Promise<AmigoEntry> {
+    return this.httpClient.put<AmigoEntry>(url + "/index/amigos/" + amigoId + "/labels" + "?token=" + token, 
         labelIds, { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setEmigoLabel(url: string, token: string, emigoId: string, labelId: string): Promise<EmigoEntry> {
-    return this.httpClient.post<EmigoEntry>(url + "/index/emigos/" + emigoId + "/labels/" + labelId + "?token=" + token, 
+  public setAmigoLabel(url: string, token: string, amigoId: string, labelId: string): Promise<AmigoEntry> {
+    return this.httpClient.post<AmigoEntry>(url + "/index/amigos/" + amigoId + "/labels/" + labelId + "?token=" + token, 
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public clearEmigoLabel(url: string, token: string, emigoId: string, labelId: string): Promise<EmigoEntry> {
-    return this.httpClient.delete<EmigoEntry>(url + "/index/emigos/" + emigoId + "/labels/" + labelId + "?token=" + token,
+  public clearAmigoLabel(url: string, token: string, amigoId: string, labelId: string): Promise<AmigoEntry> {
+    return this.httpClient.delete<AmigoEntry>(url + "/index/amigos/" + amigoId + "/labels/" + labelId + "?token=" + token,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 

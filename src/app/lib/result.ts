@@ -1,6 +1,6 @@
 /**
- * Digital Archive Emigo App Server API
- * An interface to a emigo app of distributed nodes for personal storage. emigo-id - hex encoded sha256 of an emigo 4096 public key emigo-key - hex encoded public key
+ * Digital Archive Amigo App Server API
+ * An interface to a amigo app of distributed nodes for personal storage. amigo-id - hex encoded sha256 of an amigo 4096 public key amigo-key - hex encoded public key
  *
  * OpenAPI spec version: 1.0.4
  * Contact: rosborne@coredb.org

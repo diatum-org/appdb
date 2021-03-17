@@ -11,7 +11,7 @@ import { Mediafilepicker, ImagePickerOptions, VideoPickerOptions, AudioPickerOpt
 import * as  base64 from "base-64";
 import * as utf8 from "utf8";
 
-import { EmigoService } from '../lib/emigo.service';
+import { AmigoService } from '../lib/amigo.service';
 import { AccessService } from '../lib/access.service';
 import { RegistryService } from '../lib/registry.service';
 import { IdentityService } from '../lib/identity.service';
@@ -30,21 +30,21 @@ import { ShareStatus } from '../lib/shareStatus';
 import { ShareMessage } from '../lib/shareMessage';
 import { SubjectView } from '../lib/subjectView';
 import { SubjectEntry } from '../lib/subjectEntry';
-import { Emigo } from '../lib/emigo';
+import { Amigo } from '../lib/amigo';
 import { Asset } from '../lib/asset';
 import { Attribute } from '../lib/attribute';
 import { LabelEntry } from '../lib/labelEntry';
 import { ServiceAccess } from '../lib/serviceAccess';
-import { getEmigoObject } from '../lib/emigo.util';
+import { getAmigoObject } from '../lib/amigo.util';
 import { AttributeView } from '../lib/attributeView';
-import { EmigoMessage } from '../lib/emigoMessage';
-import { EmigoEntry } from '../lib/emigoEntry';
-import { PendingEmigo } from '../lib/pendingEmigo';
-import { PendingEmigoView } from '../lib/pendingEmigoView';
+import { AmigoMessage } from '../lib/amigoMessage';
+import { AmigoEntry } from '../lib/amigoEntry';
+import { PendingAmigo } from '../lib/pendingAmigo';
+import { PendingAmigoView } from '../lib/pendingAmigoView';
 import { Subject } from '../lib/subject';
 
 class User {
-  emigoId: string;
+  amigoId: string;
   accountNode: string;
   accountToken: string;
   registry: string;
@@ -84,7 +84,7 @@ export class SocialComponent implements OnInit, OnDestroy {
       private groupService: GroupService,
       private profileService: ProfileService,
       private viewService: ViewService,
-      private emigoService: EmigoService) {
+      private amigoService: AmigoService) {
   }
 
   ngOnInit(): void {
@@ -124,7 +124,7 @@ export class SocialComponent implements OnInit, OnDestroy {
     mediafile.openImagePicker(options);
     mediafile.on("getFiles", async sel => {
 
-      this.emigoService.clearEmigo();
+      this.amigoService.clearAmigo();
       this.contactService.clearAuth();
       this.viewService.clearAuth();      
 
@@ -139,7 +139,7 @@ export class SocialComponent implements OnInit, OnDestroy {
 
       this.contactService.clearAuth();      
       this.viewService.clearAuth();      
-      this.emigoService.clearEmigo();
+      this.amigoService.clearAmigo();
     });
   }
 
@@ -162,17 +162,17 @@ export class SocialComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log("ACCOUNT: " + this.act.emigoId);
-    console.log("CONTACT0: " + this.contact[0].emigoId);
-    console.log("CONTACT1: " + this.contact[1].emigoId);
+    console.log("ACCOUNT: " + this.act.amigoId);
+    console.log("CONTACT0: " + this.contact[0].amigoId);
+    console.log("CONTACT1: " + this.contact[1].amigoId);
 
     // load account
     try {
       console.log("setting account");
-      let c = await this.emigoService.init("test007.db");
-      await this.emigoService.setAppContext({ "emigoId": this.act.emigoId, "registry": this.act.registry,
+      let c = await this.amigoService.init("test007.db");
+      await this.amigoService.setAppContext({ "amigoId": this.act.amigoId, "registry": this.act.registry,
           "token": this.act.accountToken, "serviceNode": this.act.appNode, "serviceToken": this.act.appToken });
-      let a = await this.emigoService.setEmigo(this.act.emigoId, this.act.registry, this.act.accountToken,
+      let a = await this.amigoService.setAmigo(this.act.amigoId, this.act.registry, this.act.accountToken,
           this.act.appNode, this.act.appToken, [ "0101" ], [ "2020" ], null, e => { }, s => { }, 5, 2);
       console.log(a);
       console.log("setting account: done");
@@ -186,7 +186,7 @@ export class SocialComponent implements OnInit, OnDestroy {
     // add label
     try {
       console.log("set labels");
-      let l: LabelEntry = await this.emigoService.addLabel("bff");
+      let l: LabelEntry = await this.amigoService.addLabel("bff");
       this.labelId = l.labelId;
       console.log("set labels: done");
     }
@@ -201,13 +201,13 @@ export class SocialComponent implements OnInit, OnDestroy {
       console.log("set subject");
       let s: SubjectEntry;
       let v: SubjectView;
-      s = await this.emigoService.addSubject("2020");
+      s = await this.amigoService.addSubject("2020");
       this.subjectId = s.subject.subjectId;
-      let u = await this.emigoService.setSubjectLabel(this.subjectId, this.labelId);
-      let e: FeedSubjectEntry = await this.emigoService.updateSubject(this.subjectId);
+      let u = await this.amigoService.setSubjectLabel(this.subjectId, this.labelId);
+      let e: FeedSubjectEntry = await this.amigoService.updateSubject(this.subjectId);
       console.log(e);
 
-      let upload: string = this.emigoService.getUploadUrl(this.subjectId, [ "P01", "P06" ]);
+      let upload: string = this.amigoService.getUploadUrl(this.subjectId, [ "P01", "P06" ]);
       console.log("UPLOAD: " + upload);
 
       var request = { url: upload, method: "POST", headers: { "Content-Type": "multipart/form-data" }, description: "." };
@@ -221,14 +221,14 @@ export class SocialComponent implements OnInit, OnDestroy {
             this.assetId = a.assets[i].assetId;
           }
         }
-        await this.emigoService.updateSubjectData(this.subjectId, "2020", this.assetId);
-        let entry: SubjectEntry = await this.emigoService.updateSubjectShare(this.subjectId, true);
+        await this.amigoService.updateSubjectData(this.subjectId, "2020", this.assetId);
+        let entry: SubjectEntry = await this.amigoService.updateSubjectShare(this.subjectId, true);
         console.log(entry);
       });
 
       // wait for subject to be ready
       while(true) {
-        let subject: FeedSubjectEntry = await this.emigoService.updateSubject(this.subjectId);
+        let subject: FeedSubjectEntry = await this.amigoService.updateSubject(this.subjectId);
         if(subject.ready && subject.share) {
           console.log("READY: ", subject);
           break;
@@ -237,7 +237,7 @@ export class SocialComponent implements OnInit, OnDestroy {
       }
 
       // get asset url
-      let url: string = this.emigoService.getShowAssetUrl(this.subjectId, this.assetId);
+      let url: string = this.amigoService.getShowAssetUrl(this.subjectId, this.assetId);
       let stack = <StackLayout>this.icon.nativeElement;
       let img: Image = new Image;
       img.src = url;
@@ -254,20 +254,20 @@ export class SocialComponent implements OnInit, OnDestroy {
     // request connection
     try {
       console.log("requesting connection");
-      let msg: EmigoMessage = await this.registryService.getMessage(this.contact[0].registry, this.contact[0].emigoId);
-      let emigo: EmigoEntry = await this.emigoService.addEmigo(msg);
-      await this.emigoService.setEmigoLabel(emigo.emigoId, this.labelId);
-      let share: ShareEntry = await this.emigoService.addConnection(this.contact[0].emigoId);
-      let status: string = await this.emigoService.openConnection(this.contact[0].emigoId, share.shareId, this.node);
+      let msg: AmigoMessage = await this.registryService.getMessage(this.contact[0].registry, this.contact[0].amigoId);
+      let amigo: AmigoEntry = await this.amigoService.addAmigo(msg);
+      await this.amigoService.setAmigoLabel(amigo.amigoId, this.labelId);
+      let share: ShareEntry = await this.amigoService.addConnection(this.contact[0].amigoId);
+      let status: string = await this.amigoService.openConnection(this.contact[0].amigoId, share.shareId, this.node);
 
       let tok: string = this.contact[0].accountToken;
-      let pending: PendingEmigoView[] = await this.indexService.getPendingRequests(this.node, tok);
-      let request: PendingEmigo = await this.indexService.getPendingRequest(this.node, tok, pending[0].shareId);
-      let entry: EmigoEntry = await this.indexService.addEmigo(this.node, tok, request.message);
-      let connection: ShareEntry = await this.shareService.addConnection(this.node, tok, entry.emigoId);
+      let pending: PendingAmigoView[] = await this.indexService.getPendingRequests(this.node, tok);
+      let request: PendingAmigo = await this.indexService.getPendingRequest(this.node, tok, pending[0].shareId);
+      let entry: AmigoEntry = await this.indexService.addAmigo(this.node, tok, request.message);
+      let connection: ShareEntry = await this.shareService.addConnection(this.node, tok, entry.amigoId);
       await this.shareService.updateStatus(this.node, tok, connection.shareId, "requesting", null);
       let message: ShareMessage = await this.shareService.getMessage(this.node, tok, connection.shareId);
-      let issue: ShareStatus = await this.shareService.setMessage(this.node, this.act.emigoId, message);
+      let issue: ShareStatus = await this.shareService.setMessage(this.node, this.act.amigoId, message);
       await this.shareService.updateStatus(this.node, tok, connection.shareId, "connected", issue.connected);
     }
     catch(e) {
@@ -279,19 +279,19 @@ export class SocialComponent implements OnInit, OnDestroy {
     // request connection
     try {
       console.log("requesting connection");
-      let msg: EmigoMessage = await this.registryService.getMessage(this.contact[1].registry, this.contact[1].emigoId);
-      let emigo: EmigoEntry = await this.emigoService.addEmigo(msg);
-      let share: ShareEntry = await this.emigoService.addConnection(this.contact[1].emigoId);
-      let status: string = await this.emigoService.openConnection(this.contact[1].emigoId, share.shareId, this.node);
+      let msg: AmigoMessage = await this.registryService.getMessage(this.contact[1].registry, this.contact[1].amigoId);
+      let amigo: AmigoEntry = await this.amigoService.addAmigo(msg);
+      let share: ShareEntry = await this.amigoService.addConnection(this.contact[1].amigoId);
+      let status: string = await this.amigoService.openConnection(this.contact[1].amigoId, share.shareId, this.node);
 
       let tok: string = this.contact[1].accountToken;
-      let pending: PendingEmigoView[] = await this.indexService.getPendingRequests(this.node, tok);
-      let request: PendingEmigo = await this.indexService.getPendingRequest(this.node, tok, pending[0].shareId);
-      let entry: EmigoEntry = await this.indexService.addEmigo(this.node, tok, request.message);
-      let connection: ShareEntry = await this.shareService.addConnection(this.node, tok, entry.emigoId);
+      let pending: PendingAmigoView[] = await this.indexService.getPendingRequests(this.node, tok);
+      let request: PendingAmigo = await this.indexService.getPendingRequest(this.node, tok, pending[0].shareId);
+      let entry: AmigoEntry = await this.indexService.addAmigo(this.node, tok, request.message);
+      let connection: ShareEntry = await this.shareService.addConnection(this.node, tok, entry.amigoId);
       await this.shareService.updateStatus(this.node, tok, connection.shareId, "requesting", null);
       let message: ShareMessage = await this.shareService.getMessage(this.node, tok, connection.shareId);
-      let issue: ShareStatus = await this.shareService.setMessage(this.node, this.act.emigoId, message);
+      let issue: ShareStatus = await this.shareService.setMessage(this.node, this.act.amigoId, message);
       await this.shareService.updateStatus(this.node, tok, connection.shareId, "connected", issue.connected);
     }
     catch(e) {
@@ -301,7 +301,7 @@ export class SocialComponent implements OnInit, OnDestroy {
     }
 
     // reset services
-    this.emigoService.clearEmigo();
+    this.amigoService.clearAmigo();
     this.contactService.clearAuth();
     this.viewService.clearAuth();
 
@@ -324,7 +324,7 @@ export class SocialComponent implements OnInit, OnDestroy {
     }
     
     // reset services
-    this.emigoService.clearEmigo();
+    this.amigoService.clearAmigo();
     this.contactService.clearAuth();
     this.viewService.clearAuth();
 
@@ -333,24 +333,24 @@ export class SocialComponent implements OnInit, OnDestroy {
       console.log("setting contact");
       let user: User = this.contact[0];
 
-      let a = await this.emigoService.setEmigo(user.emigoId, user.registry, user.accountToken,
+      let a = await this.amigoService.setAmigo(user.amigoId, user.registry, user.accountToken,
           user.appNode, user.appToken, [ "0101" ], [ "2020" ], null, e => {}, s => {}, 5, 2);
       
       for(let i = 0; i < 10; i++) {
         await this.timeout(1);
-        let subjects: FeedSubject[] = await this.emigoService.getViewFeed(null, null, null, 4);
+        let subjects: FeedSubject[] = await this.amigoService.getViewFeed(null, null, null, 4);
         if(subjects.length == 1) {
           break;
         }
       }
-      let subs: FeedSubject[] = await this.emigoService.getViewFeed(null, null, null, 4);
+      let subs: FeedSubject[] = await this.amigoService.getViewFeed(null, null, null, 4);
       if(subs.length != 1) {
         throw new Error("feed is empty");
       }
 
 
       // get asset url
-      let url: string = await this.emigoService.getViewAssetUrl(subs[0].emigoId, subs[0].subjectId, subs[0].data);
+      let url: string = await this.amigoService.getViewAssetUrl(subs[0].amigoId, subs[0].subjectId, subs[0].data);
       let stack = <StackLayout>this.icon.nativeElement;
       let img: Image = new Image;
       img.src = url;
@@ -366,7 +366,7 @@ export class SocialComponent implements OnInit, OnDestroy {
     }
  
     // reset services
-    this.emigoService.clearEmigo();
+    this.amigoService.clearAmigo();
     this.contactService.clearAuth();
     this.viewService.clearAuth();
 
@@ -375,12 +375,12 @@ export class SocialComponent implements OnInit, OnDestroy {
       console.log("lonely contact");
       let user: User = this.contact[1];
 
-      let a = await this.emigoService.setEmigo(user.emigoId, user.registry, user.accountToken,
+      let a = await this.amigoService.setAmigo(user.amigoId, user.registry, user.accountToken,
           user.appNode, user.appToken, [ "0101" ], [ "2020" ], null, e => {}, s => {}, 5, 2);
 
       for(let i = 0; i < 10; i++) {
         await this.timeout(1);
-        let subjects: FeedSubject[] = await this.emigoService.getViewFeed(null, null, null, 4);
+        let subjects: FeedSubject[] = await this.amigoService.getViewFeed(null, null, null, 4);
         if(subjects.length != 0) {
           throw new Error("feed was not empty and should be");
         }
@@ -403,12 +403,12 @@ export class SocialComponent implements OnInit, OnDestroy {
     let app = await this.accessService.createAccount(this.node, this.token);
     let token: any = JSON.parse(utf8.decode(base64.decode(app.token)));
     let msg = await this.accessService.authorizeAccount(this.node, token.token, access);
-    let emigo = await this.accessService.createUser(this.node, this.token, msg);
-    let usr = await this.accessService.assignUser(this.node, token.token, emigo)
+    let amigo = await this.accessService.createUser(this.node, this.token, msg);
+    let usr = await this.accessService.assignUser(this.node, token.token, amigo)
     let m = await this.identityService.setRegistry(this.node, usr.accountToken, this.registry);
     await this.registryService.setMessage(this.registry, m);
 
-    return { "emigoId": usr.emigoId, "accountNode": this.node, "accountToken": usr.accountToken, "registry": this.registry,
+    return { "amigoId": usr.amigoId, "accountNode": this.node, "accountToken": usr.accountToken, "registry": this.registry,
         "appNode": this.node, "appToken": usr.serviceToken };
   }
 

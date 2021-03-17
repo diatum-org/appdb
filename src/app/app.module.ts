@@ -5,7 +5,7 @@ import { NativeScriptHttpClientModule } from "@nativescript/angular";
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
 
-import { EmigoService } from './lib/emigo.service';
+import { AmigoService } from './lib/amigo.service';
 import { StoreService } from './lib/store.service';
 import { BitmapService } from './lib/bitmap.service';
 import { RegistryService } from './lib/registry.service';
@@ -40,7 +40,7 @@ import { ContactComponent } from './contact/contact.component';
         ContactComponent
     ],
     providers: [
-      EmigoService,
+      AmigoService,
       StoreService,
       BitmapService,
       RegistryService,

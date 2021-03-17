@@ -27,8 +27,8 @@ export class ShareService {
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public getContact(url: string, token: string, emigoId: string): Promise<ShareEntry[]> {
-    return this.httpClient.get<ShareEntry[]>(url + "/share/emigos/" + emigoId + "/connections?token=" + token + "&contacts=true&offset=0&limit=1",
+  public getContact(url: string, token: string, amigoId: string): Promise<ShareEntry[]> {
+    return this.httpClient.get<ShareEntry[]>(url + "/share/amigos/" + amigoId + "/connections?token=" + token + "&contacts=true&offset=0&limit=1",
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
@@ -52,8 +52,8 @@ export class ShareService {
         { headers: this.headers, observe: 'body' }).toPromise();
     }
 
-  public addConnection(url: string, token: string, emigoId: string): Promise<ShareEntry> {
-    return this.httpClient.post<ShareEntry>(url + "/share/connections?token=" + token + "&emigoId=" + emigoId, 
+  public addConnection(url: string, token: string, amigoId: string): Promise<ShareEntry> {
+    return this.httpClient.post<ShareEntry>(url + "/share/connections?token=" + token + "&amigoId=" + amigoId, 
         { headers: this.headers, observe: 'body' }).toPromise();
   } 
 
@@ -72,8 +72,8 @@ export class ShareService {
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
-  public setMessage(url: string, emigoId: string, msg: ShareMessage): Promise<ShareStatus> {
-    return this.httpClient.post<ShareStatus>(url + "/share/messages?emigoId=" + emigoId, msg,
+  public setMessage(url: string, amigoId: string, msg: ShareMessage): Promise<ShareStatus> {
+    return this.httpClient.post<ShareStatus>(url + "/share/messages?amigoId=" + amigoId, msg,
         { headers: this.headers, observe: 'body' }).toPromise();
   }
 
