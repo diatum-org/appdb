@@ -68,6 +68,11 @@ export class RegistryService {
     });
   }
 
+  public getPassCode(url: string, amigoId: string, password: string): Promise<string> {
+    return this.httpClient.put<string>(url + "/account/passcode?amigoId=" + amigoId + "&password=" + encodeURI(password),
+        { headers: this.headers, observe: 'body' }).toPromise();
+  }
+
   public getLogoUrl(url: string, amigoId: string, revision: number): string {
     return url + "/amigo/messages/logo?amigoId=" + amigoId + "&revision=" + revision;
   }
