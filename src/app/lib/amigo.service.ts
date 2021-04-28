@@ -935,11 +935,13 @@ export class AmigoService {
             if(!localMap.has(key)) {
               let entry: ShareEntry = await this.shareService.getConnection(this.node, this.token, key);
               await this.storeService.addConnection(this.amigoId, entry);
+              await this.refreshContact(entry.amigoId);
               refresh = true;
             }
             else if(localMap.get(key) != value) {
               let entry: ShareEntry = await this.shareService.getConnection(this.node, this.token, key);
               await this.storeService.updateConnection(this.amigoId, entry);
+              await this.refreshContact(entry.amigoId);
               refresh = true;
             }
           });
