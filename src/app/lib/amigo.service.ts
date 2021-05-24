@@ -742,8 +742,9 @@ export class AmigoService {
 
               // update any entry with different revision
               let entry: AttributeEntry = await this.profileService.getAttribute(this.node, this.token, key);
+
               await this.storeService.updateAttribute(this.amigoId, entry.attribute);
-              await this.storeService.clearAmigoLabels(this.amigoId, entry.attribute.attributeId);
+              await this.storeService.clearAttributeLabels(this.amigoId, entry.attribute.attributeId);
               for(let i = 0; i < entry.labels.length; i++) {
                 await this.storeService.setAttributeLabel(this.amigoId, entry.attribute.attributeId, entry.labels[i]);
               }
@@ -932,13 +933,16 @@ export class AmigoService {
 
           // add remote entry not in local
           await this.asyncForEach(remoteMap, async (value, key) => {
+
             if(!localMap.has(key)) {
+
               let entry: ShareEntry = await this.shareService.getConnection(this.node, this.token, key);
               await this.storeService.addConnection(this.amigoId, entry);
               await this.refreshContact(entry.amigoId);
               refresh = true;
             }
             else if(localMap.get(key) != value) {
+
               let entry: ShareEntry = await this.shareService.getConnection(this.node, this.token, key);
               await this.storeService.updateConnection(this.amigoId, entry);
               await this.refreshContact(entry.amigoId);
@@ -960,6 +964,7 @@ export class AmigoService {
 
           // if contacts should refresh
           if(refresh) {
+
             this.refreshAmigos();
             this.refreshContacts();
           }
@@ -1348,7 +1353,7 @@ export class AmigoService {
   }
 
   public async setAttributeLabels(attributeId: string, labelIds: string[]): Promise<AttributeEntry> {
-    
+   
     let entry: AttributeEntry = await this.profileService.setAttributeLabels(this.node, this.token, attributeId, labelIds);
     await this.syncProfile();
     return entry;
